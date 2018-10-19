@@ -6,9 +6,13 @@ import com.atomtex.modbusapp.transport.ModbusTransport;
 import com.atomtex.modbusapp.util.CRC16;
 
 /**
+ * The 'slave' implementation of the the {@link Modbus} device
+ *
  * @author stanislav.kleinikov@gmail.com
  */
 public class ModbusSlave extends Modbus {
+
+    private ModbusMessage requestMessage;
 
     public ModbusSlave(ModbusTransport transport) {
         super(transport);
@@ -28,7 +32,8 @@ public class ModbusSlave extends Modbus {
 
     @Override
     public boolean sendMessage(ModbusMessage message) {
-        return getTransport().sendMessage(message.getBuffer());
+        requestMessage = message;
+        return getTransport().sendMessage(requestMessage.getBuffer());
     }
 
     @Override
@@ -38,16 +43,23 @@ public class ModbusSlave extends Modbus {
 
     @Override
     public ModbusMessage receiveMessage() {
-        ModbusMessage message = new ModbusMessage(getTransport().receiveMessage());
-        message.setIntegrity(CRC16.checkCRC(message.getBuffer()));
-        return message;
+        ModbusMessage responseMessage = new ModbusMessage(getTransport().receiveMessage());
+
+        if (checkException(requestMessage, responseMessage)) {
+            responseMessage.setException(true);
+        } else {
+            responseMessage.setIntegrity(CRC16.checkCRC(responseMessage.getBuffer()));
+        }
+        return responseMessage;
     }
 
     @Override
     public void disconnect() {
         getTransport().close();
-
     }
 
+    private boolean checkException(ModbusMessage requestMessage, ModbusMessage responseMessage) {
+        return (responseMessage.getBuffer()[1] ^ requestMessage.getBuffer()[1]) == 0x80;
+    }
 
 }

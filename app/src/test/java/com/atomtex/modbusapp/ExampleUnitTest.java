@@ -1,4 +1,4 @@
-package atomtex.com.modbusapp;
+package com.atomtex.modbusapp;
 
 import org.junit.Test;
 

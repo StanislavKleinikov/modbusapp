@@ -31,6 +31,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import butterknife.BindString;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * @author kleinikov.stanislav@gmail.com
  */
@@ -51,12 +55,16 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_BLUETOOTH_ON = 1;
     private static final int REQUEST_CODE_DEVICE_COMMUNICATE = 2;
 
-    private Button switcherButton;
-    private Button searchButton;
+    @BindView(R.id.switch_button)
+    Button switcherButton;
+    @BindView(R.id.find_devices)
+    Button searchButton;
+    @BindView(R.id.list_devices)
+    ListView listViewDevices;
+
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    private SimpleAdapter simpleAdapter;
-    private BroadcastReceiver broadcastReceiver;
-    private ListView listViewDevices;
+    private SimpleAdapter mSimpleAdapter;
+    private BroadcastReceiver mBroadcastReceiver;
     private BluetoothDevice mDevice;
 
     private final static ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
@@ -66,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
         /*
             Reads from the file the address of a device which was connect
@@ -77,15 +86,12 @@ public class MainActivity extends AppCompatActivity {
             connect(mBluetoothAdapter.getRemoteDevice(macAddress));
         }
 
-        switcherButton = findViewById(R.id.switch_button);
-        searchButton = findViewById(R.id.find_devices);
-        listViewDevices = findViewById(R.id.list_devices);
         listViewDevices.setOnItemClickListener((parent, view, position, id) -> {
-            Map map = (Map) simpleAdapter.getItem(position);
+            Map map = (Map) mSimpleAdapter.getItem(position);
             String address = (String) map.get(KEY_ADDRESS);
             mDevice = mBluetoothAdapter.getRemoteDevice(address);
             map.put(KEY_ADDRESS, "connection...");
-            simpleAdapter.notifyDataSetChanged();
+            mSimpleAdapter.notifyDataSetChanged();
             if (mDevice.getBondState() != BluetoothDevice.BOND_BONDED) {
                 mDevice.createBond();
             } else {
@@ -104,15 +110,15 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        simpleAdapter = new SimpleAdapter(this, arrayList, android.R.layout.simple_list_item_2, new String[]{KEY_NAME, KEY_ADDRESS},
+        mSimpleAdapter = new SimpleAdapter(this, arrayList, android.R.layout.simple_list_item_2, new String[]{KEY_NAME, KEY_ADDRESS},
                 new int[]{android.R.id.text1, android.R.id.text2});
-        listViewDevices.setAdapter(simpleAdapter);
+        listViewDevices.setAdapter(mSimpleAdapter);
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        broadcastReceiver = new SingleBroadCastReceiver();
-        registerReceiver(broadcastReceiver, filter);
+        mBroadcastReceiver = new SingleBroadCastReceiver();
+        registerReceiver(mBroadcastReceiver, filter);
     }
 
     private void switchState() {
@@ -126,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void connect(BluetoothDevice device) {
+        mDevice = device;
         mBluetoothAdapter.cancelDiscovery();
-        saveDeviceInfo();
         Intent intent = new Intent(MainActivity.this, DeviceCommunicateActivity.class);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         startActivityForResult(intent, REQUEST_CODE_DEVICE_COMMUNICATE);
@@ -141,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
         }
         switch (resultCode) {
             case RESULT_OK:
+                saveDeviceInfo(mDevice);
                 finish();
                 break;
             case RESULT_CANCELED:
@@ -163,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void findDevices() {
         arrayList.clear();
-        simpleAdapter.notifyDataSetChanged();
+        mSimpleAdapter.notifyDataSetChanged();
 
         if (mBluetoothAdapter.isDiscovering()) {
             mBluetoothAdapter.cancelDiscovery();
@@ -191,15 +198,15 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(broadcastReceiver);
+        unregisterReceiver(mBroadcastReceiver);
         super.onDestroy();
     }
 
-    private void saveDeviceInfo() {
+    private void saveDeviceInfo(BluetoothDevice device) {
         Log.i(TAG, "save device info");
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                 openFileOutput(FILE_NAME, MODE_PRIVATE)))) {
-            writer.write(mDevice.getAddress());
+            writer.write(device.getAddress());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -231,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!arrayList.contains(map) && device.getName() != null) {
                     arrayList.add(map);
                 }
-                simpleAdapter.notifyDataSetChanged();
+                mSimpleAdapter.notifyDataSetChanged();
             } else if (BluetoothDevice.ACTION_PAIRING_REQUEST.equals(action)) {
                 BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 bluetoothDevice.setPin(KEY_PIN.getBytes());

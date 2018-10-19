@@ -21,7 +21,11 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_RECONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_UNABLE_CONNECT;
 
-
+/**
+ * The implementation of the {@link Command} interface.
+ *
+ * @author stanislav.kleinikov@gmail.com
+ */
 public class ReadStatusWordCommand implements Command {
 
     private static final int TIMEOUT = 100;
@@ -45,6 +49,12 @@ public class ReadStatusWordCommand implements Command {
         bundle = new Bundle();
         intent = new Intent();
         start();
+    }
+
+    @Override
+    public void clear() {
+        messageNumber = 0;
+        errorNumber = 0;
     }
 
     public void start() {
@@ -97,7 +107,7 @@ public class ReadStatusWordCommand implements Command {
                 + " Answer text " + ByteUtil.getHexString(message.getBuffer()));
     }
 
-    public void restartConnection() {
+    private void restartConnection() {
         Log.e(TAG, "Restart connection " + Thread.currentThread().getId());
         new Thread(() -> {
             boolean isConnected = false;

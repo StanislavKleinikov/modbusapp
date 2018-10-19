@@ -25,7 +25,7 @@ import java.util.Date;
 
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
 import static com.atomtex.modbusapp.util.BTD3Constant.ADDRESS;
-import static com.atomtex.modbusapp.util.BTD3Constant.READ_SW;
+import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATUS_WORD;
 
 /**
  * This class is the Service for communication with A device through the Bluetooth.
@@ -101,33 +101,6 @@ public class DeviceService extends LocalService {
         }
     }
 
-    public void restartConnection() {
-        Log.e(TAG, "Restart connection " + Thread.currentThread().getId());
-        new Thread(() -> {
-            boolean isConnected = false;
-            while (!isConnected) {
-                modbus.disconnect();
-                mIntent.setAction(ACTION_RECONNECT);
-                sendBroadcast(mIntent);
-                isConnected = connect();
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            isConnected = false;
-            while (!isConnected) {
-                modbus.disconnect();
-                isConnected = connect();
-            }
-            Intent connectionActiveIntent = new Intent(ACTION_CONNECTION_ACTIVE);
-            sendBroadcast(connectionActiveIntent);
-            start();
-        }).start();
-    }
-
-
     @SuppressWarnings("deprecation")
     public void start() {
         Log.e(TAG, "Start");
@@ -160,8 +133,8 @@ public class DeviceService extends LocalService {
         Notification notification = builder.build();
         startForeground(1, notification);
 
-        byte[] commandData = new byte[]{ADDRESS, READ_SW};
-        command = modbus.getCommand(READ_SW);
+        byte[] commandData = new byte[]{ADDRESS, READ_STATUS_WORD};
+        command = modbus.getCommand(READ_STATUS_WORD);
         command.execute(modbus, commandData, this);
     }
 

@@ -4,8 +4,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 
 /**
- * @author stanislav.kleinikov@gmail.com
+ * This class contains methods to convert byte[] to various type of data and back
  *
+ * @author stanislav.kleinikov@gmail.com
  */
 public final class BitConverter {
     public static byte[] getBytes(short v) {

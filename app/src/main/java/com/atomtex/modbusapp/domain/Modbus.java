@@ -4,6 +4,8 @@ import com.atomtex.modbusapp.command.Command;
 import com.atomtex.modbusapp.transport.ModbusTransport;
 
 /**
+ * The abstract model of the modbus device
+ *
  * @author stanislav.kleinikov@gmail.com
  */
 public abstract class Modbus {

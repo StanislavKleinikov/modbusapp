@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.UUID;
 
 /**
+ * The implementation of the {@link ModbusTransport}.
+ * Implements methods for interaction with devices through the RFCOMM interface
+ *
  * @author stanislav.kleinikov@gmail.com
  */
 public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {

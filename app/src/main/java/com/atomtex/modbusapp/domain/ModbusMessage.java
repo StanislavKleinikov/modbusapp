@@ -10,11 +10,17 @@ public class ModbusMessage {
     private byte[] buffer;
     private int length;
     private boolean integrity;
+    private boolean exception;
+
+    public ModbusMessage() {
+
+    }
 
     public ModbusMessage(byte[] buffer) {
         this.buffer = buffer;
         length = buffer.length;
         integrity = true;
+        exception = false;
     }
 
     public byte[] getBuffer() {
@@ -36,5 +42,13 @@ public class ModbusMessage {
 
     public void setIntegrity(boolean integrity) {
         this.integrity = integrity;
+    }
+
+    public boolean isException() {
+        return exception;
+    }
+
+    public void setException(boolean exception) {
+        this.exception = exception;
     }
 }
