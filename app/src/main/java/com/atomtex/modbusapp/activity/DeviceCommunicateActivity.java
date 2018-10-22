@@ -33,6 +33,7 @@ import static com.atomtex.modbusapp.activity.MainActivity.TAG;
 public class DeviceCommunicateActivity extends AppCompatActivity implements Callback, ServiceConnection {
 
     public static final String KEY_RESPONSE_TEXT = "responseText";
+    public static final String KEY_REQUEST_TEXT = "request";
     public static final String KEY_MESSAGE_NUMBER = "messageNumber";
     public static final String KEY_ERROR_NUMBER = "errorNumber";
     public static final String KEY_ACTIVATED = "activated";
@@ -42,6 +43,8 @@ public class DeviceCommunicateActivity extends AppCompatActivity implements Call
 
     @BindView(R.id.device_name)
     TextView deviceNameText;
+    @BindView(R.id.request_text)
+    TextView requestText;
     @BindView(R.id.response_text)
     TextView responseText;
     @BindView(R.id.message_number)

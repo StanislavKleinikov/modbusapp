@@ -18,15 +18,18 @@
             android:value="default_notification_channel_id" />
 
         <activity android:name="com.atomtex.modbusapp.activity.MainActivity">
+
+        </activity>
+        <activity
+            android:name="com.atomtex.modbusapp.activity.DeviceCommunicateActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".activity.DeviceActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.atomtex.modbusapp.activity.DeviceCommunicateActivity"
-            android:launchMode="singleTask" />
 
         <service android:name="com.atomtex.modbusapp.service.DeviceService" />
     </application>
