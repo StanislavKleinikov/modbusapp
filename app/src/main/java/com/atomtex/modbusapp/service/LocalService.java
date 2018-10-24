@@ -1,17 +1,21 @@
 package com.atomtex.modbusapp.service;
 
-import android.app.Service;
+import android.content.Intent;
 
 import com.atomtex.modbusapp.activity.Callback;
 
-public abstract class LocalService extends Service {
+public interface LocalService {
 
-    public abstract Callback getBoundedActivity();
+     Callback getBoundedActivity();
 
-    public abstract void registerClient(Callback activity);
+     void registerClient(Callback activity);
 
-    public abstract void start();
+     void start(byte[] commandData);
 
-    public abstract void stop();
+     void stop();
+
+     void onDestroy();
+
+     void sendBroadcast(Intent intent);
 
 }

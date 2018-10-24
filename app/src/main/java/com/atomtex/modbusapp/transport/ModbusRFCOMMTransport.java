@@ -4,6 +4,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.ParcelUuid;
+import android.util.Log;
+
+import com.atomtex.modbusapp.activity.MainActivity;
 
 import java.io.Closeable;
 import java.io.IOException;

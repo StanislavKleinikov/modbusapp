@@ -1,40 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Modbus App</string>
+    
     <string name="default_notification_channel_id">default</string>
+    
     <string name="find_devices">Find available devices</string>
     <string name="switch_bluetooth">bluetooth switcher</string>
-    <string name="textView2">Available devices</string>
+    <string name="change_device">Change device</string>
+    <string name="send_button">Send request</string>
+    
+    <string name="available_device">Available devices</string>
+    <string name="request">Request</string>
     <string name="response">Response</string>
     <string name="device_name">Device name</string>
-    <string name="send_button">Send request</string>
+    <string name="first_binary_signal">Номер первого регистра</string>
+    <string name="number_binary_signal">Количество регистров</string>
+
+    <string name="exception_invalid_command">Недопустимая команда</string>
+    <string name="exception_invalid_data_address">Недопустимый адрес данных</string>
+    <string name="exception_invalid_data_value">Недопустимое значение данных</string>
+    <string name="exception_detection_unit_failure">Отказ блока детектирования</string>
+    <string name="exception_detection_unit_busy">Блок детектирования занят выполнением предыдущей команды</string>
+
     <string name="message_counter">Total request</string>
     <string name="message_error_counter">Errors</string>
     <string name="start_message_number">0</string>
-    <string name="change_device">Change device</string>
+    
+    <string name="toggle_off">Start</string>
+    <string name="toggle_on">Stop</string>
+
+    <string name="status_disconnect">Connection failed</string>
     <string name="status_connected">"Status: connected"</string>
     <string name="status_unable_connect">"Unable to connect"</string>
     <string name="status_reconnect">"Status: reconnection…"</string>
-    <string name="toggle_off">Start</string>
-    <string name="toggle_on">Stop</string>
-    <string name="status_disconnect">Connection failed</string>
+
     <string name="toast_connection_active">The connection is active</string>
     <string name="toast_connection_failed">Connection failed</string>
     <string name="toast_reconnection">Reconnection…</string>
     <string name="toast_change_device">Please, connect to device</string>
     <string name="toast_turned_on">Turned on</string>
     <string name="toast_turned_off">Turned off</string>
+    
     <dimen name="TextView">30sp</dimen>
     <dimen name="Counter">20sp</dimen>
 
-    <string-array name="command">
+    <string-array name="command" >
+        <item>Выберите команду</item>
         <item>Считать состояние двоичных сигналов</item>
+        <item>Считать состояние регистров управления</item>
+        <item>Считать состояние регистров данных</item>
+        <item>Подать управляющий сигнал</item>
+        <item>Изменить состояние регистра управления</item>
         <item>Считать слово состояния</item>
+        <item>Диагностика</item>
+        <item>Тест комманда 7</item>
     </string-array>
-
-   <string name="first_binary_signal_high">Номер первого двоичного сигнала выборки, ст. часть</string>
-   <string name="first_binary_signal_low">Номер первого двоичного сигнала выборки, мл. часть</string>
-   <string name="number_binary_signal_high">Количество двоичных сигналов выборки, ст. часть</string>
-   <string name="number_binary_signal_low">Количество двоичных сигналов выборки, мл. часть</string>
-
 </resources>

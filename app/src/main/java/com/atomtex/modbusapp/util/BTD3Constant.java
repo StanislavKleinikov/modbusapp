@@ -62,6 +62,12 @@ public class BTD3Constant {
     public static final byte READ_STATUS_WORD = 0x07;
 
     /**
+     * TODO: remove this constant after test
+     * Read status word test
+     */
+    public static final byte READ_STATUS_WORD_TEST = 0x12;
+
+    /**
      * Diagnostics
      */
     public static final byte DIAGNOSTICS = 0x08;
@@ -118,6 +124,36 @@ public class BTD3Constant {
 //     * Record calibration data sample
 //     */
 //    public static final byte WRITE_CALIBRATION_DATA_SAMPLE = 0x02;
+
+
+    //The Exception codes
+
+    /**
+     *  Indicates that the command is invalid
+     */
+    public static final byte EXCEPTION_INVALID_COMMAND = 0x01;
+
+    /**
+     *  Indicates that the address data is invalid
+     */
+    public static final byte EXCEPTION_INVALID_DATA_ADDRESS = 0x02;
+
+    /**
+     *  Indicates that the value of data is invalid
+     */
+    public static final byte EXCEPTION_DATA_VALUE = 0x03;
+
+    /**
+     *  The failure of the detection unit.
+     *  Detailed information can be obtained using the diagnostic register read command
+     */
+    public static final byte EXCEPTION_DETECTION_UNIT_FAILURE  = 0x04;
+
+    /**
+     *  The detection unit is busy executing the previous command
+     */
+    public static final byte EXCEPTION_DETECTION_UNIT_BUSY = 0x06;
+
 
 
 }

@@ -1,9 +1,14 @@
 package com.atomtex.modbusapp.domain;
 
+import android.util.Log;
+
+import com.atomtex.modbusapp.activity.MainActivity;
 import com.atomtex.modbusapp.command.Command;
 import com.atomtex.modbusapp.command.CommandChooser;
 import com.atomtex.modbusapp.transport.ModbusTransport;
 import com.atomtex.modbusapp.util.CRC16;
+
+import java.util.Arrays;
 
 /**
  * The 'slave' implementation of the the {@link Modbus} device
@@ -44,7 +49,8 @@ public class ModbusSlave extends Modbus {
     @Override
     public ModbusMessage receiveMessage() {
         ModbusMessage responseMessage = new ModbusMessage(getTransport().receiveMessage());
-
+        Log.e(MainActivity.TAG, "Request " + Arrays.toString(requestMessage.getBuffer()) + "\n"
+                + "Response " + Arrays.toString(responseMessage.getBuffer()) + checkException(requestMessage, responseMessage));
         if (checkException(requestMessage, responseMessage)) {
             responseMessage.setException(true);
         } else {
@@ -59,7 +65,13 @@ public class ModbusSlave extends Modbus {
     }
 
     private boolean checkException(ModbusMessage requestMessage, ModbusMessage responseMessage) {
-        return (responseMessage.getBuffer()[1] ^ requestMessage.getBuffer()[1]) == 0x80;
+        try {
+            int x = responseMessage.getBuffer()[1] & 255;
+            int y = requestMessage.getBuffer()[1] & 255;
+            return (x ^ y) == 0x80;
+        } catch (IndexOutOfBoundsException e) {
+            return false;
+        }
     }
 
 }

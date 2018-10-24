@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.atomtex.modbusapp.activity.DeviceCommunicateActivity;
+import com.atomtex.modbusapp.activity.DeviceActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
@@ -15,6 +15,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_ERROR_NUMBER;
+import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_MESSAGE_NUMBER;
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_CONNECTION_ACTIVE;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
@@ -26,7 +28,7 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_UNABLE_CONNECT;
  *
  * @author stanislav.kleinikov@gmail.com
  */
-public class ReadStatusWordCommand implements Command {
+public class ReadStateWordCommand implements Command {
 
     private static final int TIMEOUT = 100;
     private Modbus modbus;
@@ -44,6 +46,7 @@ public class ReadStatusWordCommand implements Command {
     public void execute(Modbus modbus, byte[] data, LocalService service) {
         this.modbus = modbus;
         this.service = service;
+        data[1] = 0x07;
         byte[] messageBytes = ByteUtil.getMessageWithCRC16(data);
         message = new ModbusMessage(messageBytes);
         bundle = new Bundle();
@@ -72,23 +75,23 @@ public class ReadStatusWordCommand implements Command {
     }
 
     public Bundle getBundle() {
-        bundle.putInt(DeviceCommunicateActivity.KEY_MESSAGE_NUMBER, messageNumber);
-        bundle.putInt(DeviceCommunicateActivity.KEY_ERROR_NUMBER, errorNumber);
+        bundle.putInt(KEY_MESSAGE_NUMBER, messageNumber);
+        bundle.putInt(KEY_ERROR_NUMBER, errorNumber);
         return bundle;
     }
 
     private void sendMessage() {
         Log.i(TAG, "Send data: " + (System.currentTimeMillis() - time) + Arrays.toString(message.getBuffer()));
-        if (!modbus.sendMessage(message)) {
+        if (modbus.sendMessage(message)) {
+            receiveMessage();
+            messageNumber++;
+            service.getBoundedActivity().updateUI(getBundle());
+        } else {
             Log.e(TAG, "An error occurred while sending data");
-            service.stop();
             intent.setAction(ACTION_DISCONNECT);
             service.sendBroadcast(intent);
             restartConnection();
         }
-        receiveMessage();
-        messageNumber++;
-        service.getBoundedActivity().updateUI(getBundle());
     }
 
     private void receiveMessage() {
@@ -112,18 +115,20 @@ public class ReadStatusWordCommand implements Command {
         new Thread(() -> {
             boolean isConnected = false;
             while (!isConnected) {
-                modbus.disconnect();
-                intent.setAction(ACTION_RECONNECT);
-                service.sendBroadcast(intent);
-                isConnected = modbus.connect();
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                Log.w(TAG, "Unable to connect");
-                intent.setAction(ACTION_UNABLE_CONNECT);
+                modbus.disconnect();
+                intent.setAction(ACTION_RECONNECT);
                 service.sendBroadcast(intent);
+                isConnected = modbus.connect();
+                if (!isConnected) {
+                    Log.w(TAG, "Unable to connect");
+                    intent.setAction(ACTION_UNABLE_CONNECT);
+                    service.sendBroadcast(intent);
+                }
             }
             isConnected = false;
             while (!isConnected) {
@@ -134,5 +139,6 @@ public class ReadStatusWordCommand implements Command {
             service.sendBroadcast(intent);
             start();
         }).start();
+        stop();
     }
 }

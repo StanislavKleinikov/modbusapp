@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     private void connect(BluetoothDevice device) {
         mDevice = device;
         mBluetoothAdapter.cancelDiscovery();
-        Intent intent = new Intent(MainActivity.this, DeviceCommunicateActivity.class);
+        Intent intent = new Intent(MainActivity.this, DeviceActivity.class);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         startActivityForResult(intent, REQUEST_CODE_DEVICE_COMMUNICATE);
     }

@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
@@ -15,7 +16,7 @@ import android.util.Log;
 
 import com.atomtex.modbusapp.R;
 import com.atomtex.modbusapp.activity.Callback;
-import com.atomtex.modbusapp.activity.DeviceCommunicateActivity;
+import com.atomtex.modbusapp.activity.DeviceActivity;
 import com.atomtex.modbusapp.command.Command;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusSlave;
@@ -23,9 +24,9 @@ import com.atomtex.modbusapp.transport.ModbusTransportFactory;
 
 import java.util.Date;
 
+import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_ACTIVATED;
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
-import static com.atomtex.modbusapp.util.BTD3Constant.ADDRESS;
-import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATUS_WORD;
+import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATUS_WORD_TEST;
 
 /**
  * This class is the Service for communication with A device through the Bluetooth.
@@ -36,7 +37,7 @@ import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATUS_WORD;
  *
  * @author kleinikov.stanislav@gmail.com
  */
-public class DeviceService extends LocalService {
+public class DeviceService extends Service implements LocalService {
 
     public static final String ACTION_UNABLE_CONNECT = "unableToConnect";
     public static final String ACTION_CONNECTION_ACTIVE = "connectionIsActive";
@@ -102,39 +103,41 @@ public class DeviceService extends LocalService {
     }
 
     @SuppressWarnings("deprecation")
-    public void start() {
+    public void start(byte[] commandData) {
         Log.e(TAG, "Start");
-        Intent intent = new Intent(getApplicationContext(), DeviceCommunicateActivity.class);
-        intent.putExtra(DeviceCommunicateActivity.KEY_ACTIVATED, true);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
-        PendingIntent resultPendingIntent =
-                PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationManager notificationManager = (NotificationManager) getApplicationContext()
-                .getSystemService(Context.NOTIFICATION_SERVICE);
-        NotificationCompat.Builder builder;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            NotificationChannel notificationChannel =
-                    new NotificationChannel("ID", "Notification", NotificationManager.IMPORTANCE_HIGH);
-            notificationManager.createNotificationChannel(notificationChannel);
-            builder = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
-        } else {
-            builder = new NotificationCompat.Builder(getApplicationContext());
+        command = modbus.getCommand(commandData[1]);
+
+        if (commandData[1] == READ_STATUS_WORD_TEST) {
+            Intent intent = new Intent(getApplicationContext(), DeviceActivity.class);
+            intent.putExtra(KEY_ACTIVATED, true);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
+            PendingIntent resultPendingIntent =
+                    PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+            NotificationManager notificationManager = (NotificationManager) getApplicationContext()
+                    .getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationCompat.Builder builder;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                NotificationChannel notificationChannel =
+                        new NotificationChannel("ID", "Notification", NotificationManager.IMPORTANCE_HIGH);
+                notificationManager.createNotificationChannel(notificationChannel);
+                builder = new NotificationCompat.Builder(getApplicationContext(), notificationChannel.getId());
+            } else {
+                builder = new NotificationCompat.Builder(getApplicationContext());
+            }
+
+            builder.setSmallIcon(R.drawable.ic_launcher_background)
+                    .setContentTitle(mDevice.getName())
+                    .setContentText("Executing...")
+                    .setOngoing(true)
+                    .setWhen(new Date().getTime())
+                    .setUsesChronometer(true)
+                    .setContentIntent(resultPendingIntent);
+
+            Notification notification = builder.build();
+            startForeground(1, notification);
         }
-
-        builder.setSmallIcon(R.drawable.ic_launcher_background)
-                .setContentTitle(mDevice.getName())
-                .setContentText("Executing...")
-                .setOngoing(true)
-                .setWhen(new Date().getTime())
-                .setUsesChronometer(true)
-                .setContentIntent(resultPendingIntent);
-
-        Notification notification = builder.build();
-        startForeground(1, notification);
-
-        byte[] commandData = new byte[]{ADDRESS, READ_STATUS_WORD};
-        command = modbus.getCommand(READ_STATUS_WORD);
         command.execute(modbus, commandData, this);
     }
 
@@ -154,6 +157,9 @@ public class DeviceService extends LocalService {
     @Override
     public void onDestroy() {
         stop();
+        if (command != null) {
+            command.clear();
+        }
         modbus.disconnect();
         Log.i(TAG, "Destroy service");
         super.onDestroy();
