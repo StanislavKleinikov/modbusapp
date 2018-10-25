@@ -5,7 +5,7 @@ package com.atomtex.modbusapp.util;
  *
  * @author stanislav.kleinikov@gmail.com
  */
-public class BTD3Constant {
+public class BT_DU3Constant {
 
     /**
      * The address of a modbus device by default

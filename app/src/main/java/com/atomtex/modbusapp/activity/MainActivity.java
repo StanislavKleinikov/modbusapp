@@ -191,7 +191,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        arrayList.clear();
         super.onStop();
     }
 

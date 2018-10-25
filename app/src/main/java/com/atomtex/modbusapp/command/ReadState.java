@@ -8,6 +8,8 @@ import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
 import com.atomtex.modbusapp.util.ByteUtil;
 
+import java.nio.ByteBuffer;
+
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_EXCEPTION;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_REQUEST_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
@@ -32,11 +34,17 @@ public class ReadState implements Command {
     }
 
     @Override
-    public void execute(Modbus modbus, byte[] data, LocalService service) {
+    public void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service) {
         mService = service;
         mBundle = new Bundle();
         mIntent = new Intent();
-        byte[] messageBytes = ByteUtil.getMessageWithCRC16(data);
+        ByteBuffer buffer;
+        if (data != null) {
+            buffer = ByteBuffer.allocate(2 + data.length).put(address).put(command).put(data);
+        } else {
+            buffer = ByteBuffer.allocate(2).put(address).put(command);
+        }
+        byte[] messageBytes = ByteUtil.getMessageWithCRC16(buffer.array());
         mMessage = new ModbusMessage(messageBytes);
         mBundle.putString(KEY_REQUEST_TEXT, ByteUtil.getHexString(messageBytes));
         if (modbus.sendMessage(mMessage)) {

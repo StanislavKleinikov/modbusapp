@@ -28,7 +28,7 @@ public class CRC16 {
         int sum = 0xffff;
         byte[] arr = dataBuffer;
         for (int i = 0; i < arr.length; i++) {
-            sum = (sum ^ arr[i]);
+            sum = (sum ^ (arr[i] & 255));
             for (int j = 0; j < 8; j++) {
                 if ((sum & 0x1) == 1) {
                     sum >>>= 1;

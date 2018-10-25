@@ -8,7 +8,7 @@ import com.atomtex.modbusapp.service.LocalService;
  */
 public interface Command {
 
-    void execute(Modbus modbus, byte[] data, LocalService service);
+    void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service);
 
     void clear();
 

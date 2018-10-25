@@ -26,7 +26,7 @@ import java.util.Date;
 
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_ACTIVATED;
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
-import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATUS_WORD_TEST;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD_TEST;
 
 /**
  * This class is the Service for communication with A device through the Bluetooth.
@@ -103,12 +103,12 @@ public class DeviceService extends Service implements LocalService {
     }
 
     @SuppressWarnings("deprecation")
-    public void start(byte[] commandData) {
+    public void start(byte address, byte commandByte, byte[] commandData) {
         Log.e(TAG, "Start");
 
-        command = modbus.getCommand(commandData[1]);
+        command = modbus.getCommand(commandByte);
 
-        if (commandData[1] == READ_STATUS_WORD_TEST) {
+        if (commandByte == READ_STATUS_WORD_TEST) {
             Intent intent = new Intent(getApplicationContext(), DeviceActivity.class);
             intent.putExtra(KEY_ACTIVATED, true);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
@@ -138,7 +138,7 @@ public class DeviceService extends Service implements LocalService {
             Notification notification = builder.build();
             startForeground(1, notification);
         }
-        command.execute(modbus, commandData, this);
+        command.execute(modbus, address, commandByte, commandData, this);
     }
 
     public void stop() {
@@ -146,6 +146,12 @@ public class DeviceService extends Service implements LocalService {
         stopForeground(true);
         if (command != null) {
             command.stop();
+        }
+    }
+
+    public void clear() {
+        if (command != null) {
+            command.clear();
         }
     }
 

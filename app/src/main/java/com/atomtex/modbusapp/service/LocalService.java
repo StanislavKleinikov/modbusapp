@@ -6,16 +6,18 @@ import com.atomtex.modbusapp.activity.Callback;
 
 public interface LocalService {
 
-     Callback getBoundedActivity();
+    Callback getBoundedActivity();
 
-     void registerClient(Callback activity);
+    void registerClient(Callback activity);
 
-     void start(byte[] commandData);
+    void start(byte address, byte commandByte, byte[] commandData);
 
-     void stop();
+    void stop();
 
-     void onDestroy();
+    void clear();
 
-     void sendBroadcast(Intent intent);
+    void onDestroy();
+
+    void sendBroadcast(Intent intent);
 
 }

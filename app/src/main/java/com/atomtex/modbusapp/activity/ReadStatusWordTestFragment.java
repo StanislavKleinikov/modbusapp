@@ -12,7 +12,7 @@ import android.widget.ToggleButton;
 
 import com.atomtex.modbusapp.R;
 import com.atomtex.modbusapp.service.LocalService;
-import com.atomtex.modbusapp.util.BTD3Constant;
+import com.atomtex.modbusapp.util.BT_DU3Constant;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,7 +29,7 @@ import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_DISCONNECTED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_RECONNECT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_UNABLE_CONNECT;
 
-public class ReadStatusWordFragment extends Fragment implements ServiceFragment, Callback {
+public class ReadStatusWordTestFragment extends Fragment implements ServiceFragment, Callback {
 
     @BindView(R.id.request_text)
     TextView requestText;
@@ -52,14 +52,11 @@ public class ReadStatusWordFragment extends Fragment implements ServiceFragment,
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_read_status_word, container, false);
         ButterKnife.bind(this, view);
-        messageNumberView.setText(String.valueOf(mMessageNumber));
-        errorNumberView.setText(String.valueOf(mErrorNumber));
 
-        byte[] commandData = new byte[]{BTD3Constant.ADDRESS, BTD3Constant.READ_STATUS_WORD_TEST};
 
         toggleButton.setOnClickListener((v) -> {
             if (toggleButton.isChecked()) {
-                mService.start(commandData);
+                mService.start(BT_DU3Constant.ADDRESS, BT_DU3Constant.READ_STATUS_WORD_TEST, null);
             } else {
                 mService.stop();
             }
@@ -73,6 +70,9 @@ public class ReadStatusWordFragment extends Fragment implements ServiceFragment,
             toggleButton.setChecked(savedInstanceState.getBoolean(KEY_ACTIVATED));
             toggleButton.setClickable(savedInstanceState.getBoolean(KEY_TOGGLE_CLICKABLE));
         }
+
+        messageNumberView.setText(String.valueOf(mMessageNumber));
+        errorNumberView.setText(String.valueOf(mErrorNumber));
 
         return view;
     }

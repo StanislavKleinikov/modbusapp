@@ -1,19 +1,13 @@
 package com.atomtex.modbusapp;
 
-import android.content.SharedPreferences;
-
-import com.atomtex.modbusapp.util.BTD3Constant;
+import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
 
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Scanner;
 
 import static org.junit.Assert.*;
 
@@ -32,8 +26,8 @@ public class ExampleUnitTest {
     public void bitTest() {
 
         ByteBuffer buffer = ByteBuffer.allocate(6);
-        byte address = BTD3Constant.ADDRESS;
-        byte command = BTD3Constant.READ_STATUS_BINARY_SIGNAL;
+        byte address = BT_DU3Constant.ADDRESS;
+        byte command = BT_DU3Constant.READ_STATUS_BINARY_SIGNAL;
         byte[] request;
 
         short first = 0;

@@ -72,12 +72,14 @@
         android:layout_marginTop="5dp"
         android:text="@string/send_button" />
 
+
     <TextView
         android:id="@+id/response_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:textSize="@dimen/TextView"
+        android:scrollbars = "vertical"
         tools:text="Response" />
 
 </LinearLayout>

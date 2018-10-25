@@ -2,7 +2,7 @@ package com.atomtex.modbusapp.command;
 
 import android.util.SparseArray;
 
-import static com.atomtex.modbusapp.util.BTD3Constant.*;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
 /**
  * This class was designed as a holder for a command's list of a modbus device.
@@ -21,7 +21,7 @@ public class CommandChooser {
         btdu3commands.put(SEND_CONTROL_SIGNAL, new SendControlSignalCommand());
         btdu3commands.put(CHANGE_STATE_CONTROL_REGISTER, new ChangeStateControlRegisterCommand());
         btdu3commands.put(READ_STATUS_WORD, ReadState.getInstance());
-        btdu3commands.put(READ_STATUS_WORD_TEST, new ReadStateWordCommand());
+        btdu3commands.put(READ_STATUS_WORD_TEST, new ReadStatusWordTestCommand());
         btdu3commands.put(DIAGNOSTICS, new DiagnosticsCommand());
         btdu3commands.put(READ_SPECTR_NV_MEMORY, new ReadSpectrumNonVolatileMemoryCommand());
         btdu3commands.put(WRITE_SPECTR_NV_MEMORY, new WriteSpectrumNonVolatileMemoryCommand());

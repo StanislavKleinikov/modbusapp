@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,10 +15,9 @@ import android.widget.Toast;
 
 import com.atomtex.modbusapp.R;
 import com.atomtex.modbusapp.service.LocalService;
-import com.atomtex.modbusapp.util.BTD3Constant;
+import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
-import com.atomtex.modbusapp.util.ByteUtil;
 
 import java.nio.ByteBuffer;
 
@@ -31,7 +31,7 @@ import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_REQUEST_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_DISCONNECTED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_NONE;
-import static com.atomtex.modbusapp.util.BTD3Constant.*;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
 public class ReadStateFragment extends Fragment implements ServiceFragment, Callback {
 
@@ -77,40 +77,47 @@ public class ReadStateFragment extends Fragment implements ServiceFragment, Call
         View view = inflater.inflate(R.layout.fragment_read_state_binary_signal, container, false);
         ButterKnife.bind(this, view);
 
-        if (mCommand == READ_STATUS_WORD) {
-            firstSignalView.setVisibility(View.INVISIBLE);
-            numberSignalView.setVisibility(View.INVISIBLE);
-            firstSignalText.setVisibility(View.INVISIBLE);
-            numberSignalText.setVisibility(View.INVISIBLE);
-        }
+        responseText.setMovementMethod(new ScrollingMovementMethod());
 
+        switch (mCommand) {
+            case READ_STATUS_WORD:
+                commandStatusWord();
+                break;
+            default:
+                defaultCommand();
+                break;
+        }
+        return view;
+    }
+
+    private void commandStatusWord() {
+        firstSignalView.setVisibility(View.INVISIBLE);
+        numberSignalView.setVisibility(View.INVISIBLE);
+        firstSignalText.setVisibility(View.INVISIBLE);
+        numberSignalText.setVisibility(View.INVISIBLE);
+        sendButton.setOnClickListener(v -> mService.start(BT_DU3Constant.ADDRESS, mCommand, null));
+    }
+
+    private void defaultCommand() {
         sendButton.setOnClickListener(v -> {
             ByteBuffer buffer;
             byte[] firstSignalBytes, numberSignalBytes;
             short firstSignal, numberSignal;
-            if (mCommand == READ_STATUS_WORD) {
-                buffer = ByteBuffer.allocate(2);
-                buffer.put(BTD3Constant.ADDRESS).put(mCommand);
-                mService.stop();
-                mService.start(buffer.array());
-            } else {
-                try {
-                    buffer = ByteBuffer.allocate(6);
-                    firstSignal = (short) Integer.parseInt(firstSignalView.getText().toString());
-                    numberSignal = (short) Integer.parseInt(numberSignalView.getText().toString());
-                    firstSignal = ByteSwapper.swap(firstSignal);
-                    numberSignal = ByteSwapper.swap(numberSignal);
-                    firstSignalBytes = BitConverter.getBytes(firstSignal);
-                    numberSignalBytes = BitConverter.getBytes(numberSignal);
-                    buffer.put(BTD3Constant.ADDRESS).put(mCommand).put(firstSignalBytes).put(numberSignalBytes);
-                    mService.start(buffer.array());
-                } catch (NumberFormatException e) {
-                    Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
-                }
+            try {
+                buffer = ByteBuffer.allocate(4);
+                firstSignal = (short) Integer.parseInt(firstSignalView.getText().toString());
+                numberSignal = (short) Integer.parseInt(numberSignalView.getText().toString());
+                firstSignal = ByteSwapper.swap(firstSignal);
+                numberSignal = ByteSwapper.swap(numberSignal);
+                firstSignalBytes = BitConverter.getBytes(firstSignal);
+                numberSignalBytes = BitConverter.getBytes(numberSignal);
+                buffer.put(firstSignalBytes).put(numberSignalBytes);
+                mService.start(BT_DU3Constant.ADDRESS, mCommand, buffer.array());
+            } catch (NumberFormatException e) {
+                Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
             }
-        });
 
-        return view;
+        });
     }
 
     @Override

@@ -16,6 +16,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -32,11 +33,11 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
-import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATE_CONTROL_REGISTERS;
-import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATE_DATA_REGISTERS;
-import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATUS_BINARY_SIGNAL;
-import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATUS_WORD;
-import static com.atomtex.modbusapp.util.BTD3Constant.READ_STATUS_WORD_TEST;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_CONTROL_REGISTERS;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_DATA_REGISTERS;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_BINARY_SIGNAL;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD_TEST;
 
 public class DeviceActivity extends FragmentActivity implements ServiceConnection, Callback {
 
@@ -144,14 +145,6 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
                         setFragment(FRAGMENT_TEST, READ_STATUS_WORD_TEST);
                         break;
                     }
-                    default: {
-                        if (mFragment != null) {
-                            FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-                            fragmentTransaction.remove(mFragment);
-                            fragmentTransaction.commit();
-                        }
-                        break;
-                    }
                 }
             }
 
@@ -185,20 +178,27 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
 
     }
 
-    private void setFragment(String fragmentType, byte readStatusBinarySignal) {
-        mService.stop();
+    private void setFragment(String fragmentType, byte command) {
+
         switch (fragmentType) {
             case FRAGMENT_READ_STATE:
-                mFragment = ReadStateFragment.newInstance(readStatusBinarySignal);
-                ((ServiceFragment) mFragment).boundService(mService);
+                mFragment = mFragmentManager.findFragmentByTag(String.valueOf(command));
+                if (mFragment == null) {
+                    mFragment = ReadStateFragment.newInstance(command);
+                    ((ServiceFragment) mFragment).boundService(mService);
+                    mService.stop();
+                }
                 break;
             case FRAGMENT_TEST:
-                mFragment = new ReadStatusWordFragment();
-                ((ServiceFragment) mFragment).boundService(mService);
+                mFragment = mFragmentManager.findFragmentByTag(String.valueOf(command));
+                if (mFragment == null) {
+                    mFragment = new ReadStatusWordTestFragment();
+                    ((ServiceFragment) mFragment).boundService(mService);
+                    mService.stop();
+                }
         }
-
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, mFragment, fragmentType);
+        fragmentTransaction.replace(R.id.fragment_container, mFragment, String.valueOf(command));
         fragmentTransaction.commit();
     }
 

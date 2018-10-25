@@ -10,6 +10,7 @@ import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
 import com.atomtex.modbusapp.util.ByteUtil;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -22,13 +23,14 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_CONNECTION_ACTI
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_RECONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_UNABLE_CONNECT;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD;
 
 /**
  * The implementation of the {@link Command} interface.
  *
  * @author stanislav.kleinikov@gmail.com
  */
-public class ReadStateWordCommand implements Command {
+public class ReadStatusWordTestCommand implements Command {
 
     private static final int TIMEOUT = 100;
     private Modbus modbus;
@@ -43,11 +45,11 @@ public class ReadStateWordCommand implements Command {
 
 
     @Override
-    public void execute(Modbus modbus, byte[] data, LocalService service) {
+    public void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service) {
         this.modbus = modbus;
         this.service = service;
-        data[1] = 0x07;
-        byte[] messageBytes = ByteUtil.getMessageWithCRC16(data);
+        ByteBuffer buffer = ByteBuffer.allocate(2).put(address).put(READ_STATUS_WORD);
+        byte[] messageBytes = ByteUtil.getMessageWithCRC16(buffer.array());
         message = new ModbusMessage(messageBytes);
         bundle = new Bundle();
         intent = new Intent();
@@ -63,7 +65,7 @@ public class ReadStateWordCommand implements Command {
     public void start() {
         time = System.currentTimeMillis();
         executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(this::sendMessage, 500, TIMEOUT, TimeUnit.MILLISECONDS);
+        executor.scheduleAtFixedRate(this::sendMessage, 0, TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -90,6 +92,7 @@ public class ReadStateWordCommand implements Command {
             Log.e(TAG, "An error occurred while sending data");
             intent.setAction(ACTION_DISCONNECT);
             service.sendBroadcast(intent);
+            stop();
             restartConnection();
         }
     }
@@ -106,8 +109,6 @@ public class ReadStateWordCommand implements Command {
             errorNumber++;
             service.getBoundedActivity().updateUI(getBundle());
         }
-        Log.i(TAG, "Response time" + " " + (System.currentTimeMillis() - time)
-                + " Answer text " + ByteUtil.getHexString(message.getBuffer()));
     }
 
     private void restartConnection() {
@@ -139,6 +140,5 @@ public class ReadStateWordCommand implements Command {
             service.sendBroadcast(intent);
             start();
         }).start();
-        stop();
     }
 }

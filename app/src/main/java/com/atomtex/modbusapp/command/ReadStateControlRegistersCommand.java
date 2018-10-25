@@ -11,7 +11,7 @@ import com.atomtex.modbusapp.service.LocalService;
 public class ReadStateControlRegistersCommand implements Command {
 
     @Override
-    public void execute(Modbus modbus, byte[] data, LocalService service) {
+    public void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service) {
 
     }
 

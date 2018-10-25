@@ -7,6 +7,7 @@ import com.atomtex.modbusapp.command.Command;
 import com.atomtex.modbusapp.command.CommandChooser;
 import com.atomtex.modbusapp.transport.ModbusTransport;
 import com.atomtex.modbusapp.util.CRC16;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
 import java.util.Arrays;
 
@@ -17,6 +18,7 @@ import java.util.Arrays;
  */
 public class ModbusSlave extends Modbus {
 
+    private static final int commandBytePosition = 2;
     private ModbusMessage requestMessage;
 
     public ModbusSlave(ModbusTransport transport) {
@@ -49,8 +51,8 @@ public class ModbusSlave extends Modbus {
     @Override
     public ModbusMessage receiveMessage() {
         ModbusMessage responseMessage = new ModbusMessage(getTransport().receiveMessage());
-        Log.e(MainActivity.TAG, "Request " + Arrays.toString(requestMessage.getBuffer()) + "\n"
-                + "Response " + Arrays.toString(responseMessage.getBuffer()) + checkException(requestMessage, responseMessage));
+        Log.e(MainActivity.TAG, "\nRequest " + Arrays.toString(requestMessage.getBuffer()) + "\n"
+                + "Response " + Arrays.toString(responseMessage.getBuffer()));
         if (checkException(requestMessage, responseMessage)) {
             responseMessage.setException(true);
         } else {
