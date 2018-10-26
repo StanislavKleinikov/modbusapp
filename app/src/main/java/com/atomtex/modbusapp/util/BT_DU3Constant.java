@@ -61,11 +61,6 @@ public class BT_DU3Constant {
      */
     public static final byte READ_STATUS_WORD = 0x07;
 
-    /**
-     * TODO: remove this constant after test
-     * Read status word test
-     */
-    public static final byte READ_STATUS_WORD_TEST = 0x12;
 
     /**
      * Diagnostics
@@ -73,72 +68,51 @@ public class BT_DU3Constant {
     public static final byte DIAGNOSTICS = 0x08;
 
     /**
-     * Consider a sample spectrum from the non-volatile memory
-     */
-    public static final byte READ_SPECTR_NV_MEMORY = 0x09;
-
-    /**
-     * Record the sample spectrum in the non-volatile memory
-     */
-    public static final byte WRITE_SPECTR_NV_MEMORY = 0x10;
-
-    /**
      * To consider the accumulated sample spectrum
      */
-    public static final byte READ_SPECTR_ACCUMULATED_SAMPLE = 0x11;
+    public static final byte READ_SPECTR_ACCUMULATED_SAMPLE = 0x0B;
 
     /**
      * Change the state of control registers
      */
-    public static final byte CHANGE_MULTIPLY_CONTROL_REGISTERS = 0x16;
+    public static final byte CHANGE_STATE_CONTROL_REGISTERS = 0x10;
 
     /**
      * Read device identification code
      */
-    public static final byte READ_DEVICE_ID = 0x17;
+    public static final byte READ_DEVICE_ID = 0x11;
 
     /**
      * Read calibration data sample
      */
-    public static final byte READ_CALIBRATION_DATA_SAMPLE = 0x18;
+    public static final byte READ_CALIBRATION_DATA_SAMPLE = 0x12;
 
     /**
      * Record calibration data sample
      */
-    public static final byte WRITE_CALIBRATION_DATA_SAMPLE = 0x19;
+    public static final byte WRITE_CALIBRATION_DATA_SAMPLE = 0x13;
 
     /**
      * Read the accumulated spectrum
      */
-    public static final byte READ_ACCUMULATED_SPECTR = 0x64;
+    public static final byte READ_ACCUMULATED_SPECTR = 0x40;
 
     /**
      * Read the accumulated spectrum in compressed form with the restart of set
      */
-    public static final byte READ_ACCUMULATED_SPECTR_COMPRESSED_REBOOT = 0x65;
+    public static final byte READ_ACCUMULATED_SPECTR_COMPRESSED_REBOOT = 0x41;
 
     /**
      * Read the accumulated spectrum in compressed form
      */
-    public static final byte READ_ACCUMULATED_SPECTR_COMPRESSED = 0x66;
+    public static final byte READ_ACCUMULATED_SPECTR_COMPRESSED = 0x42;
 
+    /**
+     * TODO: remove this constant after test
+     * Read status word test
+     */
+    public static final byte READ_STATUS_WORD_TEST = 0x20;
 
-    //The subcommands
-
-//    /**
-//     * Return a request data back
-//     */
-//    public static final byte RETURN_REQUEST_DATA = 0x00;
-//
-//    /**
-//     * Record calibration data sample
-//     */
-//    public static final byte WRITE_CALIBRATION_DATA_SAMPLE = 0x01;
-//
-//    /**
-//     * Record calibration data sample
-//     */
-//    public static final byte WRITE_CALIBRATION_DATA_SAMPLE = 0x02;
 
 
     //The Exception codes

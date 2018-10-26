@@ -138,7 +138,9 @@ public class DeviceService extends Service implements LocalService {
             Notification notification = builder.build();
             startForeground(1, notification);
         }
-        command.execute(modbus, address, commandByte, commandData, this);
+        if (command != null) {
+            command.execute(modbus, address, commandByte, commandData, this);
+        }
     }
 
     public void stop() {

@@ -8,6 +8,8 @@ import android.os.ParcelUuid;
 import android.util.Log;
 
 import com.atomtex.modbusapp.activity.MainActivity;
+import com.atomtex.modbusapp.util.BT_DU3Constant;
+import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteUtil;
 
 import java.io.Closeable;
@@ -18,6 +20,10 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
 
+import static com.atomtex.modbusapp.util.BT_DU3Constant.DIAGNOSTICS;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTR;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD;
+
 /**
  * The implementation of the {@link ModbusTransport}.
  * Implements methods for interaction with devices through the RFCOMM interface
@@ -27,9 +33,11 @@ import java.util.UUID;
 public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
 
     private static final int TIMEOUT = 300;
-    private static final int NUMBER_OF_BYTES_WITHOUT_DATA = 5;
+    private static final int DEFAULT_MESSAGE_LENGTH = 5;
+    private static final int COMMAND_40_MESSAGE = 6;
+    private static final int DIAGNOSTICS_MESSAGE = 8;
 
-    //private final byte[] buffer;
+    private final byte[] buffer;
 
     private BluetoothDevice device;
     private BluetoothSocket socket;
@@ -38,14 +46,14 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
 
 
     private ModbusRFCOMMTransport() {
-       // buffer = new byte[255];
+        buffer = new byte[255];
     }
 
     private static class ModbusRFCOMMTransportHolder {
         private static final ModbusRFCOMMTransport instance = new ModbusRFCOMMTransport();
     }
 
-    public static ModbusRFCOMMTransport getInstance(BluetoothDevice device) {
+    static ModbusRFCOMMTransport getInstance(BluetoothDevice device) {
         ModbusRFCOMMTransport instance = ModbusRFCOMMTransportHolder.instance;
         instance.device = device;
         return instance;
@@ -81,28 +89,39 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
 
     @Override
     public byte[] receiveMessage() {
-        byte [] buffer = new byte[0];
+
+        byte[] buffer = this.buffer;
         int currentPosition = 0;
         long startTime = System.currentTimeMillis();
-        int totalByte = NUMBER_OF_BYTES_WITHOUT_DATA;
+        int totalByte = DEFAULT_MESSAGE_LENGTH;
 
-        while (System.currentTimeMillis() - startTime < TIMEOUT) {
+        while ((System.currentTimeMillis() - startTime < TIMEOUT) & currentPosition != totalByte) {
 
-            if (buffer.length == totalByte) {
-                return buffer;
-            }
             try {
                 if (inputStream.available() > 0) {
-                    buffer = Arrays.copyOf(buffer, buffer.length + 1);
                     int x = inputStream.read();
                     buffer[currentPosition] = (byte) x;
                     currentPosition++;
 
-                    if (buffer.length == 3) {
-                        totalByte = buffer[2] + NUMBER_OF_BYTES_WITHOUT_DATA;
-                    }
+                    if (currentPosition == 3) {
+                        if (buffer[1] == DIAGNOSTICS) {
+                            totalByte = DIAGNOSTICS_MESSAGE;
+                        } else if (buffer[1] == READ_STATUS_WORD) {
+                            totalByte = DEFAULT_MESSAGE_LENGTH;
 
-                    
+                            //TODO need to test this code
+                        } else if (buffer[1] == READ_ACCUMULATED_SPECTR) {
+                            buffer = new byte[3082];
+                            buffer[0] = this.buffer[0];
+                            buffer[1] = this.buffer[1];
+                            buffer[2] = this.buffer[2];
+                            totalByte = (BitConverter.toInt16(new byte[]{buffer[3],buffer[2]},0))
+                                    + COMMAND_40_MESSAGE;
+
+                        } else {
+                            totalByte = (buffer[2] & 255) + DEFAULT_MESSAGE_LENGTH;
+                        }
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -110,7 +129,8 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
             }
         }
 
-        return buffer;
+        return Arrays.copyOf(buffer, totalByte);
+
 
         //TODO remove this code after the test above one
        /* while (System.currentTimeMillis() - startTime < TIMEOUT) {
@@ -137,7 +157,6 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
         return Arrays.copyOf(buffer, currentPosition);*/
 
 
-        //TODO remove this code after the test above one
        /* while ((System.currentTimeMillis() - startTime) < 150) {
             try {
                 int bytesAvailable = inputStream.available();

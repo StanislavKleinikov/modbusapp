@@ -34,6 +34,9 @@ import butterknife.ButterKnife;
 
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.DIAGNOSTICS;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTR;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_DEVICE_ID;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_SPECTR_ACCUMULATED_SAMPLE;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_CONTROL_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_DATA_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_BINARY_SIGNAL;
@@ -128,36 +131,54 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
-                    case 1: {
+                    case 2:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_STATUS_BINARY_SIGNAL);
                         break;
-                    }
-                    case 2: {
+                    case 3:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_STATE_CONTROL_REGISTERS);
                         break;
-                    }
-                    case 3: {
+                    case 4:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_STATE_DATA_REGISTERS);
                         break;
-                    }
-                    case 4: {
+                    case 5:
                         setFragment(FRAGMENT_BASIC_COMMAND, SEND_CONTROL_SIGNAL);
                         break;
-                    }
-                    case 5: {
+                    case 6:
                         setFragment(FRAGMENT_BASIC_COMMAND, CHANGE_STATE_CONTROL_REGISTER);
                         break;
-                    }
-                    case 6: {
+                    case 7:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_STATUS_WORD);
                         break;
-                    }
-                    case 7: {
+                    case 8:
                         setFragment(FRAGMENT_BASIC_COMMAND, DIAGNOSTICS);
                         break;
-                    }
-                    case 8: {
+
+                        //TODO to do case 9
+                    case 9:
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_SPECTR_ACCUMULATED_SAMPLE);
+                        break;
+
+
+                    case 11:
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_DEVICE_ID);
+                        break;
+
+
+                    //TODO to do case 14
+                    case 14:
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTR);
+                        break;
+
+
+                    case 17:
                         setFragment(FRAGMENT_TEST, READ_STATUS_WORD_TEST);
+                        break;
+                    default: {
+                        if (mFragment != null) {
+                            FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+                            fragmentTransaction.remove(mFragment);
+                            fragmentTransaction.commit();
+                        }
                         break;
                     }
                 }

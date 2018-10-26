@@ -87,7 +87,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
 
         switch (mCommand) {
             case READ_STATUS_WORD:
-                commandStatusWord();
+                commandWithoutData();
                 break;
             case SEND_CONTROL_SIGNAL:
                 sendControlSignal();
@@ -97,6 +97,13 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 break;
             case DIAGNOSTICS:
                 diagnostics();
+                break;
+            case READ_DEVICE_ID:
+                commandWithoutData();
+                break;
+            case READ_ACCUMULATED_SPECTR:
+                commandWithoutData();
+                break;
             default:
                 defaultCommand();
                 break;
@@ -104,11 +111,11 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         return view;
     }
 
-    private void commandStatusWord() {
-        first_text.setVisibility(View.INVISIBLE);
-        first_field.setVisibility(View.INVISIBLE);
-        second_text.setVisibility(View.INVISIBLE);
-        second_field.setVisibility(View.INVISIBLE);
+    private void commandWithoutData() {
+        first_text.setVisibility(View.GONE);
+        first_field.setVisibility(View.GONE);
+        second_text.setVisibility(View.GONE);
+        second_field.setVisibility(View.GONE);
 
         sendButton.setOnClickListener(v -> {
             try {

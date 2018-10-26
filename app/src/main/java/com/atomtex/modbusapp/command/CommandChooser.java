@@ -19,6 +19,10 @@ public class CommandChooser {
         btdu3commands.put(READ_STATE_CONTROL_REGISTERS, BasicCommand.getInstance());
         btdu3commands.put(READ_STATE_DATA_REGISTERS, BasicCommand.getInstance());
         btdu3commands.put(READ_STATUS_WORD, BasicCommand.getInstance());
+        btdu3commands.put(SEND_CONTROL_SIGNAL, BasicCommand.getInstance());
+        btdu3commands.put(CHANGE_STATE_CONTROL_REGISTER, BasicCommand.getInstance());
+        btdu3commands.put(DIAGNOSTICS, BasicCommand.getInstance());
+        btdu3commands.put(READ_DEVICE_ID, BasicCommand.getInstance());
         btdu3commands.put(READ_STATUS_WORD_TEST, ReadStatusWordTestCommand.getInstance());
     }
 
