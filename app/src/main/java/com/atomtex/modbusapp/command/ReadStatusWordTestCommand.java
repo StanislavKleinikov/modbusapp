@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.atomtex.modbusapp.activity.DeviceActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
@@ -43,6 +42,13 @@ public class ReadStatusWordTestCommand implements Command {
     private int errorNumber;
     private long time;
 
+    private static class ReadStatusWordTestHolder {
+        static final ReadStatusWordTestCommand instance = new ReadStatusWordTestCommand();
+    }
+
+    static ReadStatusWordTestCommand getInstance() {
+        return ReadStatusWordTestHolder.instance;
+    }
 
     @Override
     public void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service) {
@@ -76,7 +82,7 @@ public class ReadStatusWordTestCommand implements Command {
         }
     }
 
-    public Bundle getBundle() {
+    private Bundle getBundle() {
         bundle.putInt(KEY_MESSAGE_NUMBER, messageNumber);
         bundle.putInt(KEY_ERROR_NUMBER, errorNumber);
         return bundle;

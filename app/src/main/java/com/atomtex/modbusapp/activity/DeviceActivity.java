@@ -33,11 +33,14 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.DIAGNOSTICS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_CONTROL_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_DATA_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_BINARY_SIGNAL;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD_TEST;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.SEND_CONTROL_SIGNAL;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.CHANGE_STATE_CONTROL_REGISTER;
 
 public class DeviceActivity extends FragmentActivity implements ServiceConnection, Callback {
 
@@ -59,7 +62,7 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
     public static final int STATUS_RECONNECT = 3;
     public static final int STATUS_UNABLE_CONNECT = 4;
 
-    public static final String FRAGMENT_READ_STATE = "read_state_fragment";
+    public static final String FRAGMENT_BASIC_COMMAND = "basic_command_fragment";
     public static final String FRAGMENT_TEST = "test_fragment";
 
     @BindView(R.id.device_name)
@@ -126,19 +129,31 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 1: {
-                        setFragment(FRAGMENT_READ_STATE, READ_STATUS_BINARY_SIGNAL);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_STATUS_BINARY_SIGNAL);
                         break;
                     }
                     case 2: {
-                        setFragment(FRAGMENT_READ_STATE, READ_STATE_CONTROL_REGISTERS);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_STATE_CONTROL_REGISTERS);
                         break;
                     }
                     case 3: {
-                        setFragment(FRAGMENT_READ_STATE, READ_STATE_DATA_REGISTERS);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_STATE_DATA_REGISTERS);
+                        break;
+                    }
+                    case 4: {
+                        setFragment(FRAGMENT_BASIC_COMMAND, SEND_CONTROL_SIGNAL);
+                        break;
+                    }
+                    case 5: {
+                        setFragment(FRAGMENT_BASIC_COMMAND, CHANGE_STATE_CONTROL_REGISTER);
                         break;
                     }
                     case 6: {
-                        setFragment(FRAGMENT_READ_STATE, READ_STATUS_WORD);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_STATUS_WORD);
+                        break;
+                    }
+                    case 7: {
+                        setFragment(FRAGMENT_BASIC_COMMAND, DIAGNOSTICS);
                         break;
                     }
                     case 8: {
@@ -181,10 +196,10 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
     private void setFragment(String fragmentType, byte command) {
 
         switch (fragmentType) {
-            case FRAGMENT_READ_STATE:
+            case FRAGMENT_BASIC_COMMAND:
                 mFragment = mFragmentManager.findFragmentByTag(String.valueOf(command));
                 if (mFragment == null) {
-                    mFragment = ReadStateFragment.newInstance(command);
+                    mFragment = BasicCommandFragment.newInstance(command);
                     ((ServiceFragment) mFragment).boundService(mService);
                     mService.stop();
                 }

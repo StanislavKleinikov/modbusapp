@@ -107,6 +107,21 @@ public class BT_DU3Constant {
      */
     public static final byte WRITE_CALIBRATION_DATA_SAMPLE = 0x19;
 
+    /**
+     * Read the accumulated spectrum
+     */
+    public static final byte READ_ACCUMULATED_SPECTR = 0x64;
+
+    /**
+     * Read the accumulated spectrum in compressed form with the restart of set
+     */
+    public static final byte READ_ACCUMULATED_SPECTR_COMPRESSED_REBOOT = 0x65;
+
+    /**
+     * Read the accumulated spectrum in compressed form
+     */
+    public static final byte READ_ACCUMULATED_SPECTR_COMPRESSED = 0x66;
+
 
     //The subcommands
 
@@ -129,31 +144,30 @@ public class BT_DU3Constant {
     //The Exception codes
 
     /**
-     *  Indicates that the command is invalid
+     * Indicates that the command is invalid
      */
     public static final byte EXCEPTION_INVALID_COMMAND = 0x01;
 
     /**
-     *  Indicates that the address data is invalid
+     * Indicates that the address data is invalid
      */
     public static final byte EXCEPTION_INVALID_DATA_ADDRESS = 0x02;
 
     /**
-     *  Indicates that the value of data is invalid
+     * Indicates that the value of data is invalid
      */
     public static final byte EXCEPTION_DATA_VALUE = 0x03;
 
     /**
-     *  The failure of the detection unit.
-     *  Detailed information can be obtained using the diagnostic register read command
+     * The failure of the detection unit.
+     * Detailed information can be obtained using the diagnostic register read command
      */
-    public static final byte EXCEPTION_DETECTION_UNIT_FAILURE  = 0x04;
+    public static final byte EXCEPTION_DETECTION_UNIT_FAILURE = 0x04;
 
     /**
-     *  The detection unit is busy executing the previous command
+     * The detection unit is busy executing the previous command
      */
     public static final byte EXCEPTION_DETECTION_UNIT_BUSY = 0x06;
-
 
 
 }

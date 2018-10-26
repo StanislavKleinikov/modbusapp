@@ -13,8 +13,14 @@
     <string name="request">Request</string>
     <string name="response">Response</string>
     <string name="device_name">Device name</string>
-    <string name="first_binary_signal">Номер первого регистра</string>
-    <string name="number_binary_signal">Количество регистров</string>
+    <string name="first_register_number">Номер первого регистра</string>
+    <string name="number_registers">Количество регистров</string>
+    <string name="number_register">Номер регистра</string>
+    <string name="control_signal_code">Код управляющего сигнала</string>
+    <string name="value">Значение</string>
+    <string name="sub_command">Подкоманда</string>
+    <string name="data">Данные</string>
+
 
     <string name="exception_invalid_command">Недопустимая команда</string>
     <string name="exception_invalid_data_address">Недопустимый адрес данных</string>
@@ -40,7 +46,9 @@
     <string name="toast_change_device">Please, connect to device</string>
     <string name="toast_turned_on">Turned on</string>
     <string name="toast_turned_off">Turned off</string>
-    
+    <string name="default_device_address">01</string>
+    <string name="device_address">Адрес</string>
+
     <dimen name="TextView">30sp</dimen>
     <dimen name="Counter">20sp</dimen>
 

@@ -18,19 +18,19 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 /**
  * The implementation of the {@link Command} interface.
  */
-public class ReadState implements Command {
+public class BasicCommand implements Command {
 
     private ModbusMessage mMessage;
     private LocalService mService;
     private Bundle mBundle;
     private Intent mIntent;
 
-    private static class ReadStateHolder {
-        static final ReadState instance = new ReadState();
+    private static class ReadStateCommandHolder {
+        static final BasicCommand instance = new BasicCommand();
     }
 
-    public static ReadState getInstance() {
-        return ReadStateHolder.instance;
+    static BasicCommand getInstance() {
+        return ReadStateCommandHolder.instance;
     }
 
     @Override
@@ -53,7 +53,9 @@ public class ReadState implements Command {
             mIntent.setAction(ACTION_DISCONNECT);
             mService.sendBroadcast(mIntent);
         }
-        if (mMessage.isException()) {
+        if (mMessage.getBuffer().length == 0) {
+            mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
+        } else if (mMessage.isException()) {
             mBundle.putByte(KEY_EXCEPTION, mMessage.getBuffer()[2]);
         } else {
             if (!mMessage.isIntegrity()) {

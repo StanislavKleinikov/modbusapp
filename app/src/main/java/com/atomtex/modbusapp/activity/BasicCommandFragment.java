@@ -9,13 +9,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.atomtex.modbusapp.R;
 import com.atomtex.modbusapp.service.LocalService;
-import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
 
@@ -33,28 +33,34 @@ import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_DISCONNECTED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_NONE;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
-public class ReadStateFragment extends Fragment implements ServiceFragment, Callback {
+public class BasicCommandFragment extends Fragment implements ServiceFragment, Callback {
 
-    @BindView(R.id.first_signal_text)
-    TextView firstSignalText;
-    @BindView(R.id.number_signal_text)
-    TextView numberSignalText;
+    @BindView(R.id.first_text)
+    TextView first_text;
+    @BindView(R.id.second_text)
+    TextView second_text;
     @BindView(R.id.request_text)
     TextView requestText;
     @BindView(R.id.response_text)
     TextView responseText;
     @BindView(R.id.first_signal)
-    EditText firstSignalView;
+    EditText first_field;
     @BindView(R.id.number_signal)
-    EditText numberSignalView;
+    EditText second_field;
     @BindView(R.id.send_button)
     Button sendButton;
+    @BindView(R.id.address_checkbox)
+    CheckBox addressCheckBox;
+    @BindView(R.id.address)
+    EditText addressView;
+
+    private static final String KEY_CHECKED = "isChecked";
 
     private LocalService mService;
     private byte mCommand;
 
-    public static ReadStateFragment newInstance(byte command) {
-        ReadStateFragment fragment = new ReadStateFragment();
+    public static BasicCommandFragment newInstance(byte command) {
+        BasicCommandFragment fragment = new BasicCommandFragment();
         Bundle bundle = new Bundle();
         bundle.putByte(KEY_COMMAND, command);
         fragment.setArguments(bundle);
@@ -83,6 +89,14 @@ public class ReadStateFragment extends Fragment implements ServiceFragment, Call
             case READ_STATUS_WORD:
                 commandStatusWord();
                 break;
+            case SEND_CONTROL_SIGNAL:
+                sendControlSignal();
+                break;
+            case CHANGE_STATE_CONTROL_REGISTER:
+                changeStateControlRegister();
+                break;
+            case DIAGNOSTICS:
+                diagnostics();
             default:
                 defaultCommand();
                 break;
@@ -91,11 +105,37 @@ public class ReadStateFragment extends Fragment implements ServiceFragment, Call
     }
 
     private void commandStatusWord() {
-        firstSignalView.setVisibility(View.INVISIBLE);
-        numberSignalView.setVisibility(View.INVISIBLE);
-        firstSignalText.setVisibility(View.INVISIBLE);
-        numberSignalText.setVisibility(View.INVISIBLE);
-        sendButton.setOnClickListener(v -> mService.start(BT_DU3Constant.ADDRESS, mCommand, null));
+        first_text.setVisibility(View.INVISIBLE);
+        first_field.setVisibility(View.INVISIBLE);
+        second_text.setVisibility(View.INVISIBLE);
+        second_field.setVisibility(View.INVISIBLE);
+
+        sendButton.setOnClickListener(v -> {
+            try {
+                byte address = Byte.parseByte(addressView.getText().toString());
+                mService.start(address, mCommand, null);
+            } catch (NumberFormatException e) {
+                Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void sendControlSignal() {
+        first_text.setText(R.string.control_signal_code);
+        second_text.setText(R.string.value);
+        defaultCommand();
+    }
+
+    private void changeStateControlRegister() {
+        first_text.setText(R.string.number_register);
+        second_text.setText(R.string.value);
+        defaultCommand();
+    }
+
+    private void diagnostics() {
+        first_text.setText(R.string.sub_command);
+        second_text.setText(R.string.data);
+        defaultCommand();
     }
 
     private void defaultCommand() {
@@ -104,15 +144,16 @@ public class ReadStateFragment extends Fragment implements ServiceFragment, Call
             byte[] firstSignalBytes, numberSignalBytes;
             short firstSignal, numberSignal;
             try {
+                byte address = Byte.parseByte(addressView.getText().toString());
                 buffer = ByteBuffer.allocate(4);
-                firstSignal = (short) Integer.parseInt(firstSignalView.getText().toString());
-                numberSignal = (short) Integer.parseInt(numberSignalView.getText().toString());
+                firstSignal = (short) Integer.parseInt(first_field.getText().toString());
+                numberSignal = (short) Integer.parseInt(second_field.getText().toString());
                 firstSignal = ByteSwapper.swap(firstSignal);
                 numberSignal = ByteSwapper.swap(numberSignal);
                 firstSignalBytes = BitConverter.getBytes(firstSignal);
                 numberSignalBytes = BitConverter.getBytes(numberSignal);
                 buffer.put(firstSignalBytes).put(numberSignalBytes);
-                mService.start(BT_DU3Constant.ADDRESS, mCommand, buffer.array());
+                mService.start(address, mCommand, buffer.array());
             } catch (NumberFormatException e) {
                 Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
             }
@@ -126,7 +167,21 @@ public class ReadStateFragment extends Fragment implements ServiceFragment, Call
         if (savedInstanceState != null) {
             requestText.setText(savedInstanceState.getString(KEY_REQUEST_TEXT));
             responseText.setText(savedInstanceState.getString(KEY_RESPONSE_TEXT));
+            addressCheckBox.setChecked(savedInstanceState.getBoolean(KEY_CHECKED));
         }
+
+        if (addressCheckBox.isChecked()) {
+            addressView.setEnabled(false);
+        }
+
+        addressCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (buttonView.isChecked()) {
+                addressView.setText(R.string.default_device_address);
+                addressView.setEnabled(false);
+            } else {
+                addressView.setEnabled(true);
+            }
+        });
     }
 
     @Override
@@ -134,6 +189,7 @@ public class ReadStateFragment extends Fragment implements ServiceFragment, Call
         super.onSaveInstanceState(outState);
         outState.putString(KEY_REQUEST_TEXT, requestText.getText().toString());
         outState.putString(KEY_RESPONSE_TEXT, responseText.getText().toString());
+        outState.putBoolean(KEY_CHECKED, addressCheckBox.isChecked());
     }
 
     @Override

@@ -26,15 +26,19 @@ import java.util.UUID;
  */
 public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
 
+    private static final int TIMEOUT = 300;
+    private static final int NUMBER_OF_BYTES_WITHOUT_DATA = 5;
+
+    //private final byte[] buffer;
+
     private BluetoothDevice device;
     private BluetoothSocket socket;
     private InputStream inputStream;
     private OutputStream outputStream;
 
-    private static final int TIMEOUT = 300;
-    private static final int NUMBER_OF_BYTES_WITHOUT_DATA = 5;
 
     private ModbusRFCOMMTransport() {
+       // buffer = new byte[255];
     }
 
     private static class ModbusRFCOMMTransportHolder {
@@ -77,8 +81,7 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
 
     @Override
     public byte[] receiveMessage() {
-
-        byte[] buffer = new byte[0];
+        byte [] buffer = new byte[0];
         int currentPosition = 0;
         long startTime = System.currentTimeMillis();
         int totalByte = NUMBER_OF_BYTES_WITHOUT_DATA;
@@ -94,15 +97,45 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
                     int x = inputStream.read();
                     buffer[currentPosition] = (byte) x;
                     currentPosition++;
+
                     if (buffer.length == 3) {
                         totalByte = buffer[2] + NUMBER_OF_BYTES_WITHOUT_DATA;
                     }
+
+                    
                 }
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
             }
         }
+
+        return buffer;
+
+        //TODO remove this code after the test above one
+       /* while (System.currentTimeMillis() - startTime < TIMEOUT) {
+
+            try {
+                if (inputStream.available() > 0) {
+                    int x = inputStream.read();
+                    buffer[currentPosition] = (byte) x;
+                    currentPosition++;
+                    if (currentPosition == 3) {
+                        if ((buffer[1] >= (byte) 0x80)) {
+                            totalByte = buffer[2] + NUMBER_OF_BYTES_WITHOUT_DATA;
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+            if (totalByte == currentPosition) {
+                return Arrays.copyOf(buffer, currentPosition);
+            }
+        }
+        return Arrays.copyOf(buffer, currentPosition);*/
+
 
         //TODO remove this code after the test above one
        /* while ((System.currentTimeMillis() - startTime) < 150) {
@@ -123,7 +156,7 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
                 return null;
             }
         }*/
-        return buffer;
+
     }
 
     @Override

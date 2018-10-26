@@ -15,21 +15,11 @@ public class CommandChooser {
 
     static {
         btdu3commands = new SparseArray<>();
-        btdu3commands.put(READ_STATUS_BINARY_SIGNAL, ReadState.getInstance());
-        btdu3commands.put(READ_STATE_CONTROL_REGISTERS, ReadState.getInstance());
-        btdu3commands.put(READ_STATE_DATA_REGISTERS, ReadState.getInstance());
-        btdu3commands.put(SEND_CONTROL_SIGNAL, new SendControlSignalCommand());
-        btdu3commands.put(CHANGE_STATE_CONTROL_REGISTER, new ChangeStateControlRegisterCommand());
-        btdu3commands.put(READ_STATUS_WORD, ReadState.getInstance());
-        btdu3commands.put(READ_STATUS_WORD_TEST, new ReadStatusWordTestCommand());
-        btdu3commands.put(DIAGNOSTICS, new DiagnosticsCommand());
-        btdu3commands.put(READ_SPECTR_NV_MEMORY, new ReadSpectrumNonVolatileMemoryCommand());
-        btdu3commands.put(WRITE_SPECTR_NV_MEMORY, new WriteSpectrumNonVolatileMemoryCommand());
-        btdu3commands.put(READ_SPECTR_ACCUMULATED_SAMPLE, new ReadAccumulatedSpectrumCommand());
-        btdu3commands.put(CHANGE_MULTIPLY_CONTROL_REGISTERS, new ChangeStateMultiplyControlRegistersCommand());
-        btdu3commands.put(READ_DEVICE_ID, new ReadDeviceIdCommand());
-        btdu3commands.put(READ_CALIBRATION_DATA_SAMPLE, new ReadCallibrationDataSampleCommand());
-        btdu3commands.put(WRITE_CALIBRATION_DATA_SAMPLE, new WriteCalibrationDataSampleCommand());
+        btdu3commands.put(READ_STATUS_BINARY_SIGNAL, BasicCommand.getInstance());
+        btdu3commands.put(READ_STATE_CONTROL_REGISTERS, BasicCommand.getInstance());
+        btdu3commands.put(READ_STATE_DATA_REGISTERS, BasicCommand.getInstance());
+        btdu3commands.put(READ_STATUS_WORD, BasicCommand.getInstance());
+        btdu3commands.put(READ_STATUS_WORD_TEST, ReadStatusWordTestCommand.getInstance());
     }
 
     public static SparseArray<Command> getCommands() {
