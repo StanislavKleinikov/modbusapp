@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Modbus App</string>
-    
     <string name="default_notification_channel_id">default</string>
     
-    <string name="find_devices">Find available devices</string>
-    <string name="switch_bluetooth">bluetooth switcher</string>
-    <string name="change_device">Change device</string>
-    <string name="send_button">Send request</string>
+    <string name="find_devices">Показать доступные устройства</string>
+    <string name="switch_bluetooth">Переключатель bluetooth</string>
+    <string name="change_device">Сменить устройство</string>
+    <string name="send_button">Послать запрос</string>
     
-    <string name="available_device">Available devices</string>
-    <string name="request">Request</string>
-    <string name="response">Response</string>
-    <string name="device_name">Device name</string>
+    <string name="available_device">Доступные устройства</string>
+    <string name="request">Запрос</string>
+    <string name="response">Ответ</string>
+    <string name="device_name">Имя устройства</string>
     <string name="first_register_number">Номер первого регистра</string>
+    <string name="first_byte_address">Адрес первого байта выборки</string>
+    <string name="number_bytes">Количество байт выборки</string>
     <string name="number_registers">Количество регистров</string>
     <string name="number_register">Номер регистра</string>
     <string name="control_signal_code">Код управляющего сигнала</string>
@@ -28,26 +29,28 @@
     <string name="exception_detection_unit_failure">Отказ блока детектирования</string>
     <string name="exception_detection_unit_busy">Блок детектирования занят выполнением предыдущей команды</string>
 
-    <string name="message_counter">Total request</string>
-    <string name="message_error_counter">Errors</string>
+    <string name="message_counter">Всего запросов</string>
+    <string name="message_error_counter">Ошибки</string>
     <string name="start_message_number">0</string>
     
-    <string name="toggle_off">Start</string>
-    <string name="toggle_on">Stop</string>
+    <string name="toggle_off">Старт</string>
+    <string name="toggle_on">Стоп</string>
 
-    <string name="status_disconnect">Connection failed</string>
-    <string name="status_connected">"Status: connected"</string>
-    <string name="status_unable_connect">"Unable to connect"</string>
-    <string name="status_reconnect">"Status: reconnection…"</string>
+    <string name="status_disconnect">Соединение потеряно</string>
+    <string name="status_connected">"Статус: активно"</string>
+    <string name="status_unable_connect">"Невозможно подключиться"</string>
+    <string name="status_reconnect">"Статус: пересоединение…"</string>
 
-    <string name="toast_connection_active">The connection is active</string>
-    <string name="toast_connection_failed">Connection failed</string>
-    <string name="toast_reconnection">Reconnection…</string>
-    <string name="toast_change_device">Please, connect to device</string>
-    <string name="toast_turned_on">Turned on</string>
-    <string name="toast_turned_off">Turned off</string>
+    <string name="toast_connection_active">Соединение установлено</string>
+    <string name="toast_connection_failed">Соединение потеряно</string>
+    <string name="toast_reconnection">Переподключение…</string>
+    <string name="toast_change_device">Пожалуйста, подключитесь к устройству</string>
+    <string name="toast_turned_on">Включено</string>
+    <string name="toast_turned_off">Выключено</string>
     <string name="default_device_address">01</string>
     <string name="device_address">Адрес</string>
+    <string name="data_write_registers">Данные, записываемые в регистры</string>
+    <string name="data_coma_separate">Данные через запятую</string>
 
     <dimen name="TextView">30sp</dimen>
     <dimen name="Counter">20sp</dimen>

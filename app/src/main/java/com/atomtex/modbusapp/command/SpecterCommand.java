@@ -21,19 +21,19 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 /**
  * The implementation of the {@link Command} interface.
  */
-public class BasicCommand implements Command {
+public class SpecterCommand implements Command {
 
     private ModbusMessage mMessage;
     private LocalService mService;
     private Bundle mBundle;
     private Intent mIntent;
 
-    private static class BasicCommandHolder {
-        static final BasicCommand instance = new BasicCommand();
+    private static class SpecterCommandHolder {
+        static final SpecterCommand instance = new SpecterCommand();
     }
 
-    static BasicCommand getInstance() {
-        return BasicCommandHolder.instance;
+    static SpecterCommand getInstance() {
+        return SpecterCommandHolder.instance;
     }
 
     @Override
@@ -43,8 +43,9 @@ public class BasicCommand implements Command {
         mBundle = new Bundle();
         mIntent = new Intent();
         ByteBuffer buffer;
+
         if (data != null) {
-            buffer = ByteBuffer.allocate(2 + data.length).put(address).put(command).put(data);
+            buffer = ByteBuffer.allocate(3 + data.length).put(address).put(command).put((byte) data.length).put(data);
         } else {
             buffer = ByteBuffer.allocate(2).put(address).put(command);
         }
@@ -63,12 +64,16 @@ public class BasicCommand implements Command {
             mBundle.putByte(KEY_EXCEPTION, mMessage.getBuffer()[2]);
         } else {
             if (!mMessage.isIntegrity()) {
-                mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mMessage.getBuffer()));
+                mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match");
             } else {
-                mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mMessage.getBuffer()));
+
+                //TODO do something with the specter data
+                mBundle.putString(KEY_RESPONSE_TEXT, "The Specter has received " + mMessage.getBuffer().length + " bytes");
             }
         }
-        mService.getBoundedActivity().updateUI(mBundle);
+        mService.getBoundedActivity().
+
+                updateUI(mBundle);
     }
 
     @Override

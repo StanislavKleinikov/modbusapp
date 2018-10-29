@@ -50,7 +50,7 @@ public class ReadStatusWordTestFragment extends Fragment implements ServiceFragm
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_read_status_word, container, false);
+        View view = inflater.inflate(R.layout.fragment_read_status_word_test, container, false);
         ButterKnife.bind(this, view);
 
 

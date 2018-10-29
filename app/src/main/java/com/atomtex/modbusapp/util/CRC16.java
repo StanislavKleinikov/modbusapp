@@ -1,5 +1,6 @@
 package com.atomtex.modbusapp.util;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -56,6 +57,16 @@ public class CRC16 {
         int crcToCheck = (x & 255) * 256 + (y & 255);
         int realCRC = calcCRC(Arrays.copyOf(toCheck, toCheck.length - 2));
         return realCRC == crcToCheck;
+    }
+
+    public static byte[] getMessageWithCRC16(byte[] bytes) {
+        short crc = (short) calcCRC(bytes);
+        crc = ByteSwapper.swap(crc);
+        byte[] bytesCRC = BitConverter.getBytes(crc);
+        ByteBuffer buffer = ByteBuffer.allocate(bytes.length + bytesCRC.length);
+        buffer.put(bytes);
+        buffer.put(bytesCRC);
+        return buffer.array();
     }
 }
 

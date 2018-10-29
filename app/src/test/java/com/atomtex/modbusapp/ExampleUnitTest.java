@@ -3,9 +3,11 @@ package com.atomtex.modbusapp;
 import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
+import com.atomtex.modbusapp.util.ByteUtil;
 
 import org.junit.Test;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -25,14 +27,28 @@ public class ExampleUnitTest {
     @Test
     public void bitTest() {
 
-        byte address = 6;
-        byte command = 33;
-        byte[] buffer = new byte[]{command,address};
+        String str = "1235,34,54,12,2211,2";
 
-        int result = BitConverter.toInt16(buffer,0);
+        String[] stringArray = str.split(",");
+        if (stringArray.length % 2 != 0) {
+            System.out.println("Please, enter a valid data");
+        }
 
+        ByteBuffer buffer = ByteBuffer.allocate(stringArray.length * 2);
 
-        System.out.println(result);
+        for (int i = 0; i < stringArray.length; i++) {
+            try {
+                short x = Short.parseShort(stringArray[i]);
+                x = ByteSwapper.swap(x);
+                byte[] xBytes = BitConverter.getBytes(x);
+                buffer.put(xBytes);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                System.out.println("Please, enter a valid data");
+            }
+        }
+
+        System.out.println(Arrays.toString(buffer.array()));
     }
 
 }

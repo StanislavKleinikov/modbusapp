@@ -39,14 +39,18 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     TextView first_text;
     @BindView(R.id.second_text)
     TextView second_text;
+    @BindView(R.id.third_text)
+    TextView third_text;
     @BindView(R.id.request_text)
     TextView requestText;
     @BindView(R.id.response_text)
     TextView responseText;
-    @BindView(R.id.first_signal)
+    @BindView(R.id.first_value)
     EditText first_field;
-    @BindView(R.id.number_signal)
+    @BindView(R.id.second_value)
     EditText second_field;
+    @BindView(R.id.third_value)
+    EditText third_field;
     @BindView(R.id.send_button)
     Button sendButton;
     @BindView(R.id.address_checkbox)
@@ -80,7 +84,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_read_state_binary_signal, container, false);
+        View view = inflater.inflate(R.layout.fragment_basic_command, container, false);
         ButterKnife.bind(this, view);
 
         responseText.setMovementMethod(new ScrollingMovementMethod());
@@ -101,10 +105,19 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             case READ_DEVICE_ID:
                 commandWithoutData();
                 break;
+            case CHANGE_STATE_CONTROL_REGISTERS:
+                changeStateControlRegisters();
+                break;
+            case READ_SPECTER_ACCUMULATED_SAMPLE:
+                readSpecterAccumulatedSample();
+                break;
             case READ_ACCUMULATED_SPECTER:
                 commandWithoutData();
                 break;
             case READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT:
+                commandWithoutData();
+                break;
+            case READ_ACCUMULATED_SPECTER_COMPRESSED:
                 commandWithoutData();
                 break;
             default:
@@ -119,6 +132,8 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         first_field.setVisibility(View.GONE);
         second_text.setVisibility(View.GONE);
         second_field.setVisibility(View.GONE);
+        third_text.setVisibility(View.GONE);
+        third_field.setVisibility(View.GONE);
 
         sendButton.setOnClickListener(v -> {
             try {
@@ -128,6 +143,12 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void readSpecterAccumulatedSample() {
+        first_text.setText(R.string.first_byte_address);
+        second_text.setText(R.string.number_bytes);
+        defaultCommand();
     }
 
     private void sendControlSignal() {
@@ -142,6 +163,46 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         defaultCommand();
     }
 
+    //TODO need to implement
+    private void changeStateControlRegisters() {
+        first_text.setText(getString(R.string.first_register_number));
+        second_text.setText(getString(R.string.number_registers));
+
+        sendButton.setOnClickListener(v -> {
+            ByteBuffer buffer;
+            String dataString;
+            byte[] firstValueBytes, secondValueBytes;
+            short firstValue, secondValue;
+            try {
+                byte address = Byte.parseByte(addressView.getText().toString());
+                firstValue = Short.parseShort(first_field.getText().toString());
+                secondValue = Short.parseShort(second_field.getText().toString());
+                firstValue = ByteSwapper.swap(firstValue);
+                secondValue = ByteSwapper.swap(secondValue);
+                firstValueBytes = BitConverter.getBytes(firstValue);
+                secondValueBytes = BitConverter.getBytes(secondValue);
+
+                dataString = third_field.getText().toString();
+                String[] stringArray = dataString.split(",");
+
+                buffer = ByteBuffer.allocate(4 + stringArray.length * 2);
+                buffer.put(firstValueBytes).put(secondValueBytes);
+
+                for (String number : stringArray) {
+                    short value = Short.parseShort(number);
+                    value = ByteSwapper.swap(value);
+                    byte[] xBytes = BitConverter.getBytes(value);
+                    buffer.put(xBytes);
+
+                }
+
+                mService.start(address, mCommand, buffer.array());
+            } catch (NumberFormatException e) {
+                Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void diagnostics() {
         first_text.setText(R.string.sub_command);
         second_text.setText(R.string.data);
@@ -149,25 +210,26 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     }
 
     private void defaultCommand() {
+        third_text.setVisibility(View.GONE);
+        third_field.setVisibility(View.GONE);
         sendButton.setOnClickListener(v -> {
             ByteBuffer buffer;
-            byte[] firstSignalBytes, numberSignalBytes;
-            short firstSignal, numberSignal;
+            byte[] firstValueBytes, secondValueBytes;
+            short firstValue, secondValue;
             try {
                 byte address = Byte.parseByte(addressView.getText().toString());
                 buffer = ByteBuffer.allocate(4);
-                firstSignal = (short) Integer.parseInt(first_field.getText().toString());
-                numberSignal = (short) Integer.parseInt(second_field.getText().toString());
-                firstSignal = ByteSwapper.swap(firstSignal);
-                numberSignal = ByteSwapper.swap(numberSignal);
-                firstSignalBytes = BitConverter.getBytes(firstSignal);
-                numberSignalBytes = BitConverter.getBytes(numberSignal);
-                buffer.put(firstSignalBytes).put(numberSignalBytes);
+                firstValue = Short.parseShort(first_field.getText().toString());
+                secondValue = Short.parseShort(second_field.getText().toString());
+                firstValue = ByteSwapper.swap(firstValue);
+                secondValue = ByteSwapper.swap(secondValue);
+                firstValueBytes = BitConverter.getBytes(firstValue);
+                secondValueBytes = BitConverter.getBytes(secondValue);
+                buffer.put(firstValueBytes).put(secondValueBytes);
                 mService.start(address, mCommand, buffer.array());
             } catch (NumberFormatException e) {
                 Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
             }
-
         });
     }
 

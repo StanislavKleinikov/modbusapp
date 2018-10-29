@@ -156,9 +156,6 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
                     case 8:
                         setFragment(FRAGMENT_BASIC_COMMAND, DIAGNOSTICS);
                         break;
-
-
-                    //TODO to do case 9
                     case 9:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_SPECTER_ACCUMULATED_SAMPLE);
                         break;
@@ -173,6 +170,7 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
                     case 11:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_DEVICE_ID);
                         break;
+
 
                     //TODO to do case 12
                     case 12:
@@ -192,14 +190,9 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
                     case 15:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT);
                         break;
-
-
-                    //TODO to do case 16
                     case 16:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER_COMPRESSED);
                         break;
-
-
                     case 17:
                         setFragment(FRAGMENT_TEST, READ_STATUS_WORD_TEST);
                         break;

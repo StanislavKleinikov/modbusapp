@@ -8,6 +8,7 @@ import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
 import com.atomtex.modbusapp.util.ByteUtil;
+import com.atomtex.modbusapp.util.CRC16;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -55,7 +56,7 @@ public class ReadStatusWordTestCommand implements Command {
         this.modbus = modbus;
         this.service = service;
         ByteBuffer buffer = ByteBuffer.allocate(2).put(address).put(READ_STATUS_WORD);
-        byte[] messageBytes = ByteUtil.getMessageWithCRC16(buffer.array());
+        byte[] messageBytes = CRC16.getMessageWithCRC16(buffer.array());
         message = new ModbusMessage(messageBytes);
         bundle = new Bundle();
         intent = new Intent();
