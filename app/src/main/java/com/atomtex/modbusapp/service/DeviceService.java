@@ -140,6 +140,8 @@ public class DeviceService extends Service implements LocalService {
         }
         if (command != null) {
             command.execute(modbus, address, commandByte, commandData, this);
+        }else{
+            Log.e(TAG,"The command is not found");
         }
     }
 

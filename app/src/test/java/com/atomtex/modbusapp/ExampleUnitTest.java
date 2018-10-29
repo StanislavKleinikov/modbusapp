@@ -25,8 +25,8 @@ public class ExampleUnitTest {
     @Test
     public void bitTest() {
 
-        byte address = 0x0c;
-        byte command = 0x06;
+        byte address = 6;
+        byte command = 33;
         byte[] buffer = new byte[]{command,address};
 
         int result = BitConverter.toInt16(buffer,0);

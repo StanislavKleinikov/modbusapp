@@ -16,7 +16,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -33,10 +32,14 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.CHANGE_STATE_CONTROL_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.DIAGNOSTICS;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTR;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_CALIBRATION_DATA_SAMPLE;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_DEVICE_ID;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_SPECTR_ACCUMULATED_SAMPLE;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_SPECTER_ACCUMULATED_SAMPLE;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_CONTROL_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_DATA_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_BINARY_SIGNAL;
@@ -44,6 +47,7 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD_TEST;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.SEND_CONTROL_SIGNAL;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.CHANGE_STATE_CONTROL_REGISTER;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.WRITE_CALIBRATION_DATA_SAMPLE;
 
 public class DeviceActivity extends FragmentActivity implements ServiceConnection, Callback {
 
@@ -153,9 +157,16 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
                         setFragment(FRAGMENT_BASIC_COMMAND, DIAGNOSTICS);
                         break;
 
-                        //TODO to do case 9
+
+                    //TODO to do case 9
                     case 9:
-                        setFragment(FRAGMENT_BASIC_COMMAND, READ_SPECTR_ACCUMULATED_SAMPLE);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_SPECTER_ACCUMULATED_SAMPLE);
+                        break;
+
+
+                    //TODO to do case 10
+                    case 10:
+                        setFragment(FRAGMENT_BASIC_COMMAND, CHANGE_STATE_CONTROL_REGISTERS);
                         break;
 
 
@@ -163,10 +174,29 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_DEVICE_ID);
                         break;
 
+                    //TODO to do case 12
+                    case 12:
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_CALIBRATION_DATA_SAMPLE);
+                        break;
 
-                    //TODO to do case 14
+
+                    //TODO to do case 13
+                    case 13:
+                        setFragment(FRAGMENT_BASIC_COMMAND, WRITE_CALIBRATION_DATA_SAMPLE);
+                        break;
+
+
                     case 14:
-                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTR);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER);
+                        break;
+                    case 15:
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT);
+                        break;
+
+
+                    //TODO to do case 16
+                    case 16:
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER_COMPRESSED);
                         break;
 
 

@@ -101,7 +101,10 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             case READ_DEVICE_ID:
                 commandWithoutData();
                 break;
-            case READ_ACCUMULATED_SPECTR:
+            case READ_ACCUMULATED_SPECTER:
+                commandWithoutData();
+                break;
+            case READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT:
                 commandWithoutData();
                 break;
             default:
