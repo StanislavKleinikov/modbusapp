@@ -24,7 +24,7 @@
     <string name="sub_command">Подкоманда</string>
     <string name="data">Данные</string>
     <string name="device_address">Адрес</string>
-    <string name="data_write_registers">Данные, записываемые в регистры</string>
+    <string name="data_write">Записываемые данные</string>
     <string name="data_coma_separate">Данные через запятую</string>
 
     <string name="toggle_off">Старт</string>

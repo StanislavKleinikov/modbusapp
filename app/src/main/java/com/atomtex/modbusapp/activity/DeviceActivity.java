@@ -171,14 +171,9 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
                     case 12:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_CALIBRATION_DATA_SAMPLE);
                         break;
-
-
-                    //TODO to do case 13
                     case 13:
                         setFragment(FRAGMENT_BASIC_COMMAND, WRITE_CALIBRATION_DATA_SAMPLE);
                         break;
-
-
                     case 14:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER);
                         break;

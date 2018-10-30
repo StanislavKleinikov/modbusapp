@@ -107,7 +107,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 diagnostics();
                 break;
             case CHANGE_STATE_CONTROL_REGISTERS:
-                changeStateControlRegisters();
+                changeState();
                 break;
             case READ_SPECTER_ACCUMULATED_SAMPLE:
                 readSample();
@@ -118,7 +118,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             case READ_CALIBRATION_DATA_SAMPLE:
                 readSample();
             case WRITE_CALIBRATION_DATA_SAMPLE:
-
+                changeState();
                 break;
             case READ_ACCUMULATED_SPECTER:
                 commandWithoutData();
@@ -149,7 +149,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 byte address = Byte.parseByte(addressView.getText().toString());
                 mService.start(address, mCommand, null);
             } catch (NumberFormatException e) {
-                Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -172,7 +172,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         defaultCommand();
     }
 
-    private void changeStateControlRegisters() {
+    private void changeState() {
         first_text.setText(getString(R.string.first_register_number));
         second_text.setText(getString(R.string.number_registers));
 
@@ -185,13 +185,15 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 byte address = Byte.parseByte(addressView.getText().toString());
                 firstValue = Short.parseShort(first_field.getText().toString());
                 secondValue = Short.parseShort(second_field.getText().toString());
+                dataString = third_field.getText().toString();
+                String[] stringArray = dataString.split(",");
+                if (secondValue != dataString.length()) {
+                    throw new NumberFormatException();
+                }
                 firstValue = ByteSwapper.swap(firstValue);
                 secondValue = ByteSwapper.swap(secondValue);
                 firstValueBytes = BitConverter.getBytes(firstValue);
                 secondValueBytes = BitConverter.getBytes(secondValue);
-
-                dataString = third_field.getText().toString();
-                String[] stringArray = dataString.split(",");
 
                 buffer = ByteBuffer.allocate(4 + stringArray.length * 2);
                 buffer.put(firstValueBytes).put(secondValueBytes);
@@ -206,7 +208,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
 
                 mService.start(address, mCommand, buffer.array());
             } catch (NumberFormatException e) {
-                Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -236,7 +238,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 buffer.put(firstValueBytes).put(secondValueBytes);
                 mService.start(address, mCommand, buffer.array());
             } catch (NumberFormatException e) {
-                Toast.makeText(getActivity(), "Enter a valid data", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
             }
         });
     }

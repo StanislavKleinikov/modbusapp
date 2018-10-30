@@ -8,6 +8,7 @@ import com.atomtex.modbusapp.activity.MainActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
+import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.ByteUtil;
 import com.atomtex.modbusapp.util.CRC16;
 
@@ -17,6 +18,7 @@ import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_EXCEPTION;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_REQUEST_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
 /**
  * The implementation of the {@link Command} interface.
@@ -67,15 +69,15 @@ public class SpecterCommand implements Command {
         } else {
             if (!mMessage.isIntegrity()) {
                 mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match");
+            } else if (mMessage.getBuffer()[1] == WRITE_CALIBRATION_DATA_SAMPLE
+                    || mMessage.getBuffer()[1] == CHANGE_STATE_CONTROL_REGISTERS) {
+                mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mMessage.getBuffer()));
             } else {
-
                 //TODO do something with the specter data
-                mBundle.putString(KEY_RESPONSE_TEXT, "The Specter has received " + mMessage.getBuffer().length + " bytes");
+                mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mMessage.getBuffer().length + " bytes");
             }
         }
-        mService.getBoundedActivity().
-
-                updateUI(mBundle);
+        mService.getBoundedActivity().updateUI(mBundle);
     }
 
     @Override

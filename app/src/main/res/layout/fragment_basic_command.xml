@@ -79,7 +79,7 @@
             android:gravity="center_horizontal"
             android:layout_height="wrap_content"
             android:labelFor="@id/third_value"
-            android:text="@string/data_write_registers"/>
+            android:text="@string/data_write"/>
 
         <EditText
             android:id="@+id/third_value"
