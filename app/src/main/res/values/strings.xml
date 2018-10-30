@@ -2,6 +2,8 @@
 <resources>
     <string name="app_name">Modbus App</string>
     <string name="default_notification_channel_id">default</string>
+    <string name="default_device_address">01</string>
+    <string name="start_message_number">0</string>
     
     <string name="find_devices">Показать доступные устройства</string>
     <string name="switch_bluetooth">Переключатель bluetooth</string>
@@ -21,7 +23,14 @@
     <string name="value">Значение</string>
     <string name="sub_command">Подкоманда</string>
     <string name="data">Данные</string>
+    <string name="device_address">Адрес</string>
+    <string name="data_write_registers">Данные, записываемые в регистры</string>
+    <string name="data_coma_separate">Данные через запятую</string>
 
+    <string name="toggle_off">Старт</string>
+    <string name="toggle_on">Стоп</string>
+    <string name="message_counter">Всего запросов</string>
+    <string name="message_error_counter">Ошибки</string>
 
     <string name="exception_invalid_command">Недопустимая команда</string>
     <string name="exception_invalid_data_address">Недопустимый адрес данных</string>
@@ -29,28 +38,18 @@
     <string name="exception_detection_unit_failure">Отказ блока детектирования</string>
     <string name="exception_detection_unit_busy">Блок детектирования занят выполнением предыдущей команды</string>
 
-    <string name="message_counter">Всего запросов</string>
-    <string name="message_error_counter">Ошибки</string>
-    <string name="start_message_number">0</string>
-    
-    <string name="toggle_off">Старт</string>
-    <string name="toggle_on">Стоп</string>
-
     <string name="status_disconnect">Соединение потеряно</string>
     <string name="status_connected">"Статус: активно"</string>
     <string name="status_unable_connect">"Невозможно подключиться"</string>
     <string name="status_reconnect">"Статус: пересоединение…"</string>
 
     <string name="toast_connection_active">Соединение установлено</string>
-    <string name="toast_connection_failed">Соединение потеряно</string>
+    <string name="toast_connection_failed">Подключение не удалось</string>
     <string name="toast_reconnection">Переподключение…</string>
     <string name="toast_change_device">Пожалуйста, подключитесь к устройству</string>
     <string name="toast_turned_on">Включено</string>
     <string name="toast_turned_off">Выключено</string>
-    <string name="default_device_address">01</string>
-    <string name="device_address">Адрес</string>
-    <string name="data_write_registers">Данные, записываемые в регистры</string>
-    <string name="data_coma_separate">Данные через запятую</string>
+    <string name="toast_invalid_data">Некоректные данные</string>
 
     <dimen name="TextView">30sp</dimen>
     <dimen name="Counter">20sp</dimen>

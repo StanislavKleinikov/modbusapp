@@ -20,6 +20,8 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 
 /**
  * The implementation of the {@link Command} interface.
+ *
+ * @author stanislav.kleinikov@gmail.com
  */
 public class BasicCommand implements Command {
 

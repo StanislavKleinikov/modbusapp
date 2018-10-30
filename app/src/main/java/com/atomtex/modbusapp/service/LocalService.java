@@ -4,6 +4,9 @@ import android.content.Intent;
 
 import com.atomtex.modbusapp.activity.Callback;
 
+/**
+ * @author stanislav.kleinikov@gmail.com
+ */
 public interface LocalService {
 
     Callback getBoundedActivity();

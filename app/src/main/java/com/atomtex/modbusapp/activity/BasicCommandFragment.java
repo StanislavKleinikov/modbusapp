@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,9 @@ import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_DISCONNECTED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_NONE;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
+/**
+ * @author stanislav.kleinikov@gmail.com
+ */
 public class BasicCommandFragment extends Fragment implements ServiceFragment, Callback {
 
     @BindView(R.id.first_text)
@@ -90,26 +94,31 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         responseText.setMovementMethod(new ScrollingMovementMethod());
 
         switch (mCommand) {
-            case READ_STATUS_WORD:
-                commandWithoutData();
-                break;
             case SEND_CONTROL_SIGNAL:
                 sendControlSignal();
                 break;
             case CHANGE_STATE_CONTROL_REGISTER:
                 changeStateControlRegister();
                 break;
+            case READ_STATUS_WORD:
+                commandWithoutData();
+                break;
             case DIAGNOSTICS:
                 diagnostics();
-                break;
-            case READ_DEVICE_ID:
-                commandWithoutData();
                 break;
             case CHANGE_STATE_CONTROL_REGISTERS:
                 changeStateControlRegisters();
                 break;
             case READ_SPECTER_ACCUMULATED_SAMPLE:
-                readSpecterAccumulatedSample();
+                readSample();
+                break;
+            case READ_DEVICE_ID:
+                commandWithoutData();
+                break;
+            case READ_CALIBRATION_DATA_SAMPLE:
+                readSample();
+            case WRITE_CALIBRATION_DATA_SAMPLE:
+
                 break;
             case READ_ACCUMULATED_SPECTER:
                 commandWithoutData();
@@ -145,7 +154,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         });
     }
 
-    private void readSpecterAccumulatedSample() {
+    private void readSample() {
         first_text.setText(R.string.first_byte_address);
         second_text.setText(R.string.number_bytes);
         defaultCommand();
@@ -163,7 +172,6 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         defaultCommand();
     }
 
-    //TODO need to implement
     private void changeStateControlRegisters() {
         first_text.setText(getString(R.string.first_register_number));
         second_text.setText(getString(R.string.number_registers));

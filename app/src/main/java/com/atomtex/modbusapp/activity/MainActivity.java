@@ -35,7 +35,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * @author kleinikov.stanislav@gmail.com
+ * @author stanislav.kleinikov@gmail.com
  */
 public class MainActivity extends AppCompatActivity {
 

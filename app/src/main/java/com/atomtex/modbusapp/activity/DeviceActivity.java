@@ -49,6 +49,9 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.SEND_CONTROL_SIGNAL;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.CHANGE_STATE_CONTROL_REGISTER;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.WRITE_CALIBRATION_DATA_SAMPLE;
 
+/**
+ * @author stanislav.kleinikov@gmail.com
+ */
 public class DeviceActivity extends FragmentActivity implements ServiceConnection, Callback {
 
     public static final String KEY_RESPONSE_TEXT = "responseText";
@@ -159,20 +162,12 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
                     case 9:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_SPECTER_ACCUMULATED_SAMPLE);
                         break;
-
-
-                    //TODO to do case 10
                     case 10:
                         setFragment(FRAGMENT_BASIC_COMMAND, CHANGE_STATE_CONTROL_REGISTERS);
                         break;
-
-
                     case 11:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_DEVICE_ID);
                         break;
-
-
-                    //TODO to do case 12
                     case 12:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_CALIBRATION_DATA_SAMPLE);
                         break;

@@ -29,6 +29,9 @@ import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_DISCONNECTED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_RECONNECT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_UNABLE_CONNECT;
 
+/**
+ * @author stanislav.kleinikov@gmail.com
+ */
 public class ReadStatusWordTestFragment extends Fragment implements ServiceFragment, Callback {
 
     @BindView(R.id.request_text)

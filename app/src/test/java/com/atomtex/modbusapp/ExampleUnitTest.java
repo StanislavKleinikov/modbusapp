@@ -51,4 +51,15 @@ public class ExampleUnitTest {
         System.out.println(Arrays.toString(buffer.array()));
     }
 
+    @Test
+    public void bitConvertTest() {
+
+        byte firstValue = 0x01;
+        byte secondValue = 0x00;
+
+        int x = BitConverter.toInt16(new byte[]{secondValue,firstValue}, 0);
+
+        System.out.println(x);
+    }
+
 }
