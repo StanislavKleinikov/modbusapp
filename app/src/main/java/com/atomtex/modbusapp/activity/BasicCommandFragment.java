@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +41,8 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
  */
 public class BasicCommandFragment extends Fragment implements ServiceFragment, Callback {
 
+    @BindView(R.id.layout_data_container)
+    LinearLayout layoutDataContainer;
     @BindView(R.id.first_text)
     TextView first_text;
     @BindView(R.id.second_text)
@@ -94,6 +98,9 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         responseText.setMovementMethod(new ScrollingMovementMethod());
 
         switch (mCommand) {
+            case USER_COMMAND:
+                userCommand();
+                break;
             case SEND_CONTROL_SIGNAL:
                 sendControlSignal();
                 break;
@@ -107,7 +114,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 diagnostics();
                 break;
             case CHANGE_STATE_CONTROL_REGISTERS:
-                changeState();
+                changeMultiplyState();
                 break;
             case READ_SPECTER_ACCUMULATED_SAMPLE:
                 readSample();
@@ -117,8 +124,9 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 break;
             case READ_CALIBRATION_DATA_SAMPLE:
                 readSample();
+                break;
             case WRITE_CALIBRATION_DATA_SAMPLE:
-                changeState();
+                changeMultiplyState();
                 break;
             case READ_ACCUMULATED_SPECTER:
                 commandWithoutData();
@@ -136,13 +144,42 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         return view;
     }
 
+    private void userCommand() {
+        first_text.setVisibility(View.GONE);
+        first_field.setVisibility(View.GONE);
+        second_text.setVisibility(View.GONE);
+        second_field.setVisibility(View.GONE);
+        addressCheckBox.setVisibility(View.GONE);
+        addressView.setVisibility(View.GONE);
+        layoutDataContainer.setVisibility(View.VISIBLE);
+        third_text.setText(R.string.command_data);
+        third_field.setInputType(InputType.TYPE_CLASS_TEXT);
+
+        sendButton.setOnClickListener(v -> {
+            ByteBuffer buffer;
+            String dataString;
+            try {
+                dataString = third_field.getText().toString();
+                String[] stringArray = dataString.split(" ");
+                buffer = ByteBuffer.allocate(stringArray.length);
+
+                for (String number : stringArray) {
+                    buffer.put((byte) Integer.parseInt(number, 16));
+                }
+
+                mService.start(buffer.array()[0], mCommand, buffer.array());
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void commandWithoutData() {
         first_text.setVisibility(View.GONE);
         first_field.setVisibility(View.GONE);
         second_text.setVisibility(View.GONE);
         second_field.setVisibility(View.GONE);
-        third_text.setVisibility(View.GONE);
-        third_field.setVisibility(View.GONE);
 
         sendButton.setOnClickListener(v -> {
             try {
@@ -172,7 +209,8 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         defaultCommand();
     }
 
-    private void changeState() {
+    private void changeMultiplyState() {
+        layoutDataContainer.setVisibility(View.VISIBLE);
         first_text.setText(getString(R.string.first_register_number));
         second_text.setText(getString(R.string.number_registers));
 
@@ -186,7 +224,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 firstValue = Short.parseShort(first_field.getText().toString());
                 secondValue = Short.parseShort(second_field.getText().toString());
                 dataString = third_field.getText().toString();
-                String[] stringArray = dataString.split(",");
+                String[] stringArray = dataString.split(" ");
                 if (secondValue != dataString.length()) {
                     throw new NumberFormatException();
                 }
@@ -203,7 +241,6 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                     value = ByteSwapper.swap(value);
                     byte[] xBytes = BitConverter.getBytes(value);
                     buffer.put(xBytes);
-
                 }
 
                 mService.start(address, mCommand, buffer.array());
@@ -220,8 +257,6 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     }
 
     private void defaultCommand() {
-        third_text.setVisibility(View.GONE);
-        third_field.setVisibility(View.GONE);
         sendButton.setOnClickListener(v -> {
             ByteBuffer buffer;
             byte[] firstValueBytes, secondValueBytes;

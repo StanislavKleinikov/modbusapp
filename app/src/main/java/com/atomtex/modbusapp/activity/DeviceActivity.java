@@ -48,6 +48,7 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD_TEST;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.SEND_CONTROL_SIGNAL;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.CHANGE_STATE_CONTROL_REGISTER;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.WRITE_CALIBRATION_DATA_SAMPLE;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.USER_COMMAND;
 
 /**
  * @author stanislav.kleinikov@gmail.com
@@ -138,6 +139,9 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
+                    case 1:
+                        setFragment(FRAGMENT_BASIC_COMMAND, USER_COMMAND);
+                        break;
                     case 2:
                         setFragment(FRAGMENT_BASIC_COMMAND, READ_STATUS_BINARY_SIGNAL);
                         break;

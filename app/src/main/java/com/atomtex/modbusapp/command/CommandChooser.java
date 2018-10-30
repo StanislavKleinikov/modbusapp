@@ -15,6 +15,7 @@ public class CommandChooser {
 
     static {
         btdu3commands = new SparseArray<>();
+        btdu3commands.put(USER_COMMAND, UserCommand.getInstance());
         btdu3commands.put(READ_STATUS_BINARY_SIGNAL, BasicCommand.getInstance());
         btdu3commands.put(READ_STATE_CONTROL_REGISTERS, BasicCommand.getInstance());
         btdu3commands.put(READ_STATE_DATA_REGISTERS, BasicCommand.getInstance());

@@ -30,6 +30,10 @@ public class BT_DU3Constant {
 
     //Basic commands
 
+    /**
+     * User enter a command manually
+     */
+    public static final byte USER_COMMAND = 0x00;
 
     /**
      * To consider the status of the binary signals

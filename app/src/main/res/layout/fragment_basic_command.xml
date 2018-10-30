@@ -67,11 +67,12 @@
 
 
     <LinearLayout
-        android:id="@+id/layout_container"
+        android:id="@+id/layout_data_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/third_text"
@@ -87,7 +88,7 @@
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="number"
-            android:hint="@string/data_coma_separate"
+            android:hint="@string/data_whitespace_separate"
             android:digits="0123456789,"
             android:maxLines="1" />
     </LinearLayout>

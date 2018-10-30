@@ -57,9 +57,23 @@ public class ExampleUnitTest {
         byte firstValue = 0x01;
         byte secondValue = 0x00;
 
-        int x = BitConverter.toInt16(new byte[]{secondValue,firstValue}, 0);
+        int x = BitConverter.toInt16(new byte[]{secondValue, firstValue}, 0);
 
         System.out.println(x);
     }
 
+    @Test
+    public void whiteSpaceTest() {
+        ByteBuffer buffer;
+        String str = " 12 12 34 45 55 ";
+        str = str.trim();
+
+        String[] arrayString = str.split(" ");
+        buffer = ByteBuffer.allocate(arrayString.length);
+
+        for (String number : arrayString) {
+            buffer.put(Byte.parseByte(number));
+        }
+        System.out.println(Arrays.toString(buffer.array()));
+    }
 }

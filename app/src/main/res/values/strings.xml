@@ -16,6 +16,7 @@
     <string name="device_name">Имя устройства</string>
     <string name="first_register_number">Номер первого регистра</string>
     <string name="first_byte_address">Адрес первого байта выборки</string>
+    <string name="command_number">Номер команды</string>
     <string name="number_bytes">Количество байт выборки</string>
     <string name="number_registers">Количество регистров</string>
     <string name="number_register">Номер регистра</string>
@@ -25,7 +26,8 @@
     <string name="data">Данные</string>
     <string name="device_address">Адрес</string>
     <string name="data_write">Записываемые данные</string>
-    <string name="data_coma_separate">Данные через запятую</string>
+    <string name="command_data">данные команды</string>
+    <string name="data_whitespace_separate">Данные через пробел</string>
 
     <string name="toggle_off">Старт</string>
     <string name="toggle_on">Стоп</string>
