@@ -38,7 +38,7 @@ public class ExampleInstrumentedTest {
 
     }
     @Test
-    public void dataTest(){
+    public void dataBaseTest(){
        /* Log.i("myTag","Start");
 
         Context appContext = InstrumentationRegistry.getTargetContext();

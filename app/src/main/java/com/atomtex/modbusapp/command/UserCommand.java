@@ -10,13 +10,16 @@ import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.ByteUtil;
 import com.atomtex.modbusapp.util.CRC16;
 
-import java.nio.ByteBuffer;
-
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_EXCEPTION;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_REQUEST_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 
+/**
+ * The implementation of the {@link Command} interface.
+ *
+ * @author stanislav.kleinikov@gmail.com
+ */
 public class UserCommand implements Command {
 
     private ModbusMessage mMessage;

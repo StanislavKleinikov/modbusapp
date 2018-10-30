@@ -7,7 +7,6 @@ import android.util.Log;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
-import com.atomtex.modbusapp.util.ByteUtil;
 import com.atomtex.modbusapp.util.CRC16;
 
 import java.nio.ByteBuffer;

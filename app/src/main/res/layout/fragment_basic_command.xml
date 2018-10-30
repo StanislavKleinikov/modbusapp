@@ -102,22 +102,14 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:labelFor="@id/address_checkbox"
+            android:labelFor="@id/address"
             android:text="@string/device_address" />
-
-        <CheckBox
-            android:id="@+id/address_checkbox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:checked="true" />
 
         <EditText
             android:id="@+id/address"
             android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:inputType="number"
-            android:labelFor="@id/address_checkbox"
             android:maxLength="2"
             android:maxLines="1"
             android:text="@string/default_device_address"
@@ -128,7 +120,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginStart="50dp"
+            android:layout_marginStart="60dp"
             android:layout_marginTop="5dp"
             android:text="@string/send_button" />
 
@@ -141,6 +133,6 @@
         android:gravity="center_horizontal"
         android:scrollbars="vertical"
         android:textSize="@dimen/TextView"
-        tools:text="Response" />
+        tools:text="@string/response" />
 
 </LinearLayout>

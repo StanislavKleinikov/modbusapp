@@ -12,9 +12,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -53,7 +54,7 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.USER_COMMAND;
 /**
  * @author stanislav.kleinikov@gmail.com
  */
-public class DeviceActivity extends FragmentActivity implements ServiceConnection, Callback {
+public class DeviceActivity extends AppCompatActivity implements ServiceConnection, Callback {
 
     public static final String KEY_RESPONSE_TEXT = "responseText";
     public static final String KEY_REQUEST_TEXT = "request";
@@ -91,11 +92,14 @@ public class DeviceActivity extends FragmentActivity implements ServiceConnectio
     private BroadcastReceiver mReceiver;
     private FragmentManager mFragmentManager;
     private boolean dialogIsShowing = true;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         ButterKnife.bind(this);
 
         if (savedInstanceState != null) {

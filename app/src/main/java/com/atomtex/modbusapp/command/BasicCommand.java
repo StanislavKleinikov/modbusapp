@@ -2,9 +2,7 @@ package com.atomtex.modbusapp.command;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
-import com.atomtex.modbusapp.activity.MainActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;

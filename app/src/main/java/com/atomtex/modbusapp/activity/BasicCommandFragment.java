@@ -6,12 +6,10 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -61,12 +59,8 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     EditText third_field;
     @BindView(R.id.send_button)
     Button sendButton;
-    @BindView(R.id.address_checkbox)
-    CheckBox addressCheckBox;
     @BindView(R.id.address)
     EditText addressView;
-
-    private static final String KEY_CHECKED = "isChecked";
 
     private LocalService mService;
     private byte mCommand;
@@ -86,7 +80,6 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         if (bundle != null) {
             mCommand = bundle.getByte(KEY_COMMAND);
         }
-
     }
 
     @Override
@@ -149,7 +142,6 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         first_field.setVisibility(View.GONE);
         second_text.setVisibility(View.GONE);
         second_field.setVisibility(View.GONE);
-        addressCheckBox.setVisibility(View.GONE);
         addressView.setVisibility(View.GONE);
         layoutDataContainer.setVisibility(View.VISIBLE);
         third_text.setText(R.string.command_data);
@@ -159,7 +151,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             ByteBuffer buffer;
             String dataString;
             try {
-                dataString = third_field.getText().toString();
+                dataString = third_field.getText().toString().trim();
                 String[] stringArray = dataString.split(" ");
                 buffer = ByteBuffer.allocate(stringArray.length);
 
@@ -183,7 +175,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
 
         sendButton.setOnClickListener(v -> {
             try {
-                byte address = Byte.parseByte(addressView.getText().toString());
+                byte address = Byte.parseByte(addressView.getText().toString().trim());
                 mService.start(address, mCommand, null);
             } catch (NumberFormatException e) {
                 Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
@@ -200,7 +192,41 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     private void sendControlSignal() {
         first_text.setText(R.string.control_signal_code);
         second_text.setText(R.string.value);
-        defaultCommand();
+        first_field.setHint(R.string.hex_number);
+        second_field.setHint(R.string.hex_number);
+
+        sendButton.setOnClickListener(v -> {
+            ByteBuffer buffer;
+            byte[] firstValueBytes, secondValueBytes;
+            String firstString, secondString;
+            short firstValue, secondValue;
+            try {
+                buffer = ByteBuffer.allocate(4);
+                byte address = Byte.parseByte(addressView.getText().toString());
+                firstString = first_field.getText().toString().trim();
+                secondString = second_field.getText().toString().trim();
+
+                if (firstString.startsWith(getString(R.string.hex_prefix))) {
+                    firstString = firstString.substring(2, firstString.length());
+                }
+                if (secondString.startsWith(getString(R.string.hex_prefix))) {
+                    secondString = secondString.substring(2, secondString.length());
+                }
+
+                firstValue = (short) Integer.parseInt(firstString, 16);
+                secondValue = (short) Integer.parseInt(secondString, 16);
+                firstValue = ByteSwapper.swap(firstValue);
+                secondValue = ByteSwapper.swap(secondValue);
+                firstValueBytes = BitConverter.getBytes(firstValue);
+                secondValueBytes = BitConverter.getBytes(secondValue);
+
+                buffer.put(firstValueBytes).put(secondValueBytes);
+
+                mService.start(address, mCommand, buffer.array());
+            } catch (NumberFormatException e) {
+                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void changeStateControlRegister() {
@@ -220,10 +246,10 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             byte[] firstValueBytes, secondValueBytes;
             short firstValue, secondValue;
             try {
-                byte address = Byte.parseByte(addressView.getText().toString());
-                firstValue = Short.parseShort(first_field.getText().toString());
-                secondValue = Short.parseShort(second_field.getText().toString());
-                dataString = third_field.getText().toString();
+                byte address = Byte.parseByte(addressView.getText().toString().trim());
+                firstValue = (short) Integer.parseInt(first_field.getText().toString().trim());
+                secondValue = (short) Integer.parseInt(second_field.getText().toString().trim());
+                dataString = third_field.getText().toString().trim();
                 String[] stringArray = dataString.split(" ");
                 if (secondValue != dataString.length()) {
                     throw new NumberFormatException();
@@ -262,10 +288,10 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             byte[] firstValueBytes, secondValueBytes;
             short firstValue, secondValue;
             try {
-                byte address = Byte.parseByte(addressView.getText().toString());
+                byte address = Byte.parseByte(addressView.getText().toString().trim());
                 buffer = ByteBuffer.allocate(4);
-                firstValue = Short.parseShort(first_field.getText().toString());
-                secondValue = Short.parseShort(second_field.getText().toString());
+                firstValue = (short) Integer.parseInt(first_field.getText().toString().trim());
+                secondValue = (short) Integer.parseInt(second_field.getText().toString().trim());
                 firstValue = ByteSwapper.swap(firstValue);
                 secondValue = ByteSwapper.swap(secondValue);
                 firstValueBytes = BitConverter.getBytes(firstValue);
@@ -284,21 +310,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         if (savedInstanceState != null) {
             requestText.setText(savedInstanceState.getString(KEY_REQUEST_TEXT));
             responseText.setText(savedInstanceState.getString(KEY_RESPONSE_TEXT));
-            addressCheckBox.setChecked(savedInstanceState.getBoolean(KEY_CHECKED));
         }
-
-        if (addressCheckBox.isChecked()) {
-            addressView.setEnabled(false);
-        }
-
-        addressCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (buttonView.isChecked()) {
-                addressView.setText(R.string.default_device_address);
-                addressView.setEnabled(false);
-            } else {
-                addressView.setEnabled(true);
-            }
-        });
     }
 
     @Override
@@ -306,7 +318,6 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         super.onSaveInstanceState(outState);
         outState.putString(KEY_REQUEST_TEXT, requestText.getText().toString());
         outState.putString(KEY_RESPONSE_TEXT, responseText.getText().toString());
-        outState.putBoolean(KEY_CHECKED, addressCheckBox.isChecked());
     }
 
     @Override

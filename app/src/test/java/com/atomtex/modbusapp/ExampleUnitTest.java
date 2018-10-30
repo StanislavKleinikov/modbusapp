@@ -53,11 +53,14 @@ public class ExampleUnitTest {
 
     @Test
     public void bitConvertTest() {
+        //String value = "ff00";
+        String value = "0xff00";
 
-        byte firstValue = 0x01;
-        byte secondValue = 0x00;
+        if (value.startsWith("0x")) {
+            value = value.substring(2, value.length());
+        }
 
-        int x = BitConverter.toInt16(new byte[]{secondValue, firstValue}, 0);
+        int x = Integer.parseInt(value, 16);
 
         System.out.println(x);
     }

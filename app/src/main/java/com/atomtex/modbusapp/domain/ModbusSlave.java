@@ -7,7 +7,6 @@ import com.atomtex.modbusapp.command.Command;
 import com.atomtex.modbusapp.command.CommandChooser;
 import com.atomtex.modbusapp.transport.ModbusTransport;
 import com.atomtex.modbusapp.util.CRC16;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
 import java.util.Arrays;
 
@@ -18,7 +17,6 @@ import java.util.Arrays;
  */
 public class ModbusSlave extends Modbus {
 
-    private static final int commandBytePosition = 2;
     private ModbusMessage requestMessage;
 
     public ModbusSlave(ModbusTransport transport) {

@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,7 +15,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.support.v7.widget.Toolbar;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
@@ -22,11 +23,6 @@ import android.widget.Toast;
 
 import com.atomtex.modbusapp.R;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,13 +35,13 @@ import butterknife.ButterKnife;
  */
 public class MainActivity extends AppCompatActivity {
 
+    public static final String APP_PREFERENCES = "settings";
+
     public static final String TAG = "myTag";
 
     public static final String EXTRA_MESSAGE = "message";
 
     private static final String ACTION_CHANGE_DEVICE = "changeDevice";
-
-    private static final String FILE_NAME = "BoundedDeviceInfo";
 
     private static final String KEY_PIN = "0000";
     private static final String KEY_ADDRESS = "address";
@@ -65,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
     private SimpleAdapter mSimpleAdapter;
     private BroadcastReceiver mBroadcastReceiver;
     private BluetoothDevice mDevice;
+    private SharedPreferences preferences;
+    private Toolbar toolbar;
 
     private final static ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
 
@@ -73,12 +71,12 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         ButterKnife.bind(this);
 
-        /*
-            Reads from the file the address of a device which was connect
-         */
-        String macAddress = readDeviceInfo();
+        preferences = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        String macAddress = preferences.getString(KEY_ADDRESS, null);
         if (!ACTION_CHANGE_DEVICE.equals(getIntent().getAction())
                 && BluetoothAdapter.checkBluetoothAddress(macAddress) && mBluetoothAdapter.isEnabled()
                 && mBluetoothAdapter.getBondedDevices().contains(mBluetoothAdapter.getRemoteDevice(macAddress))) {
@@ -146,7 +144,9 @@ public class MainActivity extends AppCompatActivity {
         }
         switch (resultCode) {
             case RESULT_OK:
-                saveDeviceInfo(mDevice);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString(KEY_ADDRESS, mDevice.getAddress());
+                editor.apply();
                 finish();
                 break;
             case RESULT_CANCELED:
@@ -198,29 +198,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         unregisterReceiver(mBroadcastReceiver);
         super.onDestroy();
-    }
-
-    private void saveDeviceInfo(BluetoothDevice device) {
-        Log.i(TAG, "save device info");
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                openFileOutput(FILE_NAME, MODE_PRIVATE)))) {
-            writer.write(device.getAddress());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String readDeviceInfo() {
-        Log.i(TAG, "read device info");
-        StringBuilder address = new StringBuilder();
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(
-                    openFileInput(FILE_NAME)));
-            address.append(reader.readLine());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return address.toString();
     }
 
     private class SingleBroadCastReceiver extends BroadcastReceiver {

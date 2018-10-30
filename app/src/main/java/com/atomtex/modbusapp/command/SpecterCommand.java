@@ -8,7 +8,6 @@ import com.atomtex.modbusapp.activity.MainActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
-import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.ByteUtil;
 import com.atomtex.modbusapp.util.CRC16;
 

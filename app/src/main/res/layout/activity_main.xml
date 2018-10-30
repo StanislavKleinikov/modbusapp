@@ -6,6 +6,11 @@
     android:layout_height="match_parent"
     tools:context="com.atomtex.modbusapp.activity.MainActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/ToolBar" />
+
+
     <Button
         android:id="@+id/switch_button"
         android:layout_width="0dp"

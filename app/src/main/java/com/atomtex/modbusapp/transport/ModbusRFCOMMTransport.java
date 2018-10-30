@@ -7,7 +7,6 @@ import android.os.ParcelUuid;
 
 import com.atomtex.modbusapp.util.BitConverter;
 
-import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +19,7 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.SEND_CONTROL_SIGNAL;
 
 /**
  * The implementation of the {@link ModbusTransport}.
@@ -32,8 +32,8 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
     private static final int TIMEOUT_DEFAULT = 300;
     private static final int TIMEOUT_READ_SPECTER = 600;
     private static final int MESSAGE_DEFAULT_LENGTH = 5;
-    private static final int MESSAGE_LONG_LENGTH = 6;
-    private static final int MESSAGE_DIAGNOSTICS = 8;
+    private static final int MESSAGE_MID_LENGTH = 6;
+    private static final int MESSAGE_LONG_LENGTH = 8;
 
     private final byte[] buffer;
     private static int responseTimeout = 300;
@@ -111,9 +111,11 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
 
                     if (currentPosition == 3) {
                         if (buffer[1] == DIAGNOSTICS) {
-                            totalByte = MESSAGE_DIAGNOSTICS;
+                            totalByte = MESSAGE_LONG_LENGTH;
                         } else if (buffer[1] == READ_STATUS_WORD) {
                             totalByte = MESSAGE_DEFAULT_LENGTH;
+                        }else if (buffer[1]==SEND_CONTROL_SIGNAL){
+                            totalByte = MESSAGE_LONG_LENGTH;
                         } else {
                             totalByte = (buffer[2] & 255) + MESSAGE_DEFAULT_LENGTH;
                         }
@@ -122,7 +124,7 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
                                     || buffer[1] == READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT
                                     || buffer[1] == READ_ACCUMULATED_SPECTER_COMPRESSED)) {
                         int lengthData = BitConverter.toInt16(new byte[]{buffer[3], buffer[2]}, 0);
-                        totalByte = lengthData + MESSAGE_LONG_LENGTH;
+                        totalByte = lengthData + MESSAGE_MID_LENGTH;
                     }
                 }
             } catch (IOException e) {
