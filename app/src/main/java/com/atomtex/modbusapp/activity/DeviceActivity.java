@@ -17,10 +17,13 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -83,6 +86,9 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
     Spinner mSpinner;
     @BindView(R.id.change_device)
     Button mChangeDeviceButton;
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
+
     private Fragment mFragment;
     private ProgressDialog mDialog;
     private Intent mServiceIntent;
@@ -91,21 +97,19 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
     private LocalService mService;
     private BroadcastReceiver mReceiver;
     private FragmentManager mFragmentManager;
-    private boolean dialogIsShowing = true;
-    private Toolbar toolbar;
+    private boolean mDialogIsShowing = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device);
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         ButterKnife.bind(this);
+        setSupportActionBar(mToolbar);
 
         if (savedInstanceState != null) {
             mServiceIntent = savedInstanceState.getParcelable(KEY_SERVICE_INTENT);
             mDevice = savedInstanceState.getParcelable(KEY_DEVICE);
-            dialogIsShowing = savedInstanceState.getBoolean(KEY_DIALOG_IS_SHOWING);
+            mDialogIsShowing = savedInstanceState.getBoolean(KEY_DIALOG_IS_SHOWING);
         } else {
             mDevice = getIntent().getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         }
@@ -113,16 +117,29 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
         init();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     private void init() {
 
-        mDialog = new ProgressDialog(DeviceActivity.this);
-        mDialog.setTitle("Connecting to device");
-        mDialog.setMessage("Please wait..");
-        mDialog.setIndeterminate(true);
-        mDialog.setCancelable(false);
-
-        if (dialogIsShowing) {
+        if (mDialogIsShowing) {
+            mDialog = new ProgressDialog(DeviceActivity.this);
+            mDialog.setTitle("Connecting to device");
+            mDialog.setMessage("Please wait..");
+            mDialog.setIndeterminate(true);
+            mDialog.setCancelable(false);
             mDialog.show();
         }
 
@@ -264,7 +281,7 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
         super.onSaveInstanceState(outState);
         outState.putParcelable(KEY_SERVICE_INTENT, mServiceIntent);
         outState.putParcelable(KEY_DEVICE, mDevice);
-        outState.putBoolean(KEY_DIALOG_IS_SHOWING, dialogIsShowing);
+        outState.putBoolean(KEY_DIALOG_IS_SHOWING, mDialogIsShowing);
     }
 
     private void makeToast(String message) {
@@ -288,6 +305,9 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
 
     @Override
     protected void onDestroy() {
+        if (mDialog != null && mDialog.isShowing()) {
+            mDialog.dismiss();
+        }
         unbindService(mConnection);
         unregisterReceiver(mReceiver);
         super.onDestroy();
@@ -327,7 +347,7 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
                 makeToast(getString(R.string.toast_connection_active));
                 if (mDialog.isShowing()) {
                     mDialog.cancel();
-                    dialogIsShowing = false;
+                    mDialogIsShowing = false;
                 }
                 Bundle bundle = new Bundle();
                 bundle.putInt(KEY_CONNECTION_STATUS, STATUS_ACTIVE);

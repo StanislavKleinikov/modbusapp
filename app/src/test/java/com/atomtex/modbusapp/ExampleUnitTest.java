@@ -4,9 +4,11 @@ import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
 import com.atomtex.modbusapp.util.ByteUtil;
+import com.atomtex.modbusapp.util.CRC16;
 
 import org.junit.Test;
 
+import java.lang.reflect.Array;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -29,7 +31,7 @@ public class ExampleUnitTest {
 
         String str = "1235,34,54,12,2211,2";
 
-        String[] stringArray = str.split(",");
+        String[] stringArray = str.trim().split(",");
         if (stringArray.length % 2 != 0) {
             System.out.println("Please, enter a valid data");
         }
@@ -53,30 +55,33 @@ public class ExampleUnitTest {
 
     @Test
     public void bitConvertTest() {
-        //String value = "ff00";
-        String value = "0xff00";
 
-        if (value.startsWith("0x")) {
-            value = value.substring(2, value.length());
-        }
+        byte x = 0x01;
+        byte y = 0x07;
 
-        int x = Integer.parseInt(value, 16);
+        short value = (short)57921;
 
-        System.out.println(x);
+        value = ByteSwapper.swap(value);
+        byte[] result = BitConverter.getBytes(value);
+
+        System.out.println(CRC16.calcCRC(new byte[]{x,y}));
+        System.out.println(Arrays.toString(result));
     }
 
     @Test
     public void whiteSpaceTest() {
         ByteBuffer buffer;
-        String str = " 12 12 34 45 55 ";
-        str = str.trim();
-
-        String[] arrayString = str.split(" ");
+        String str = " 12 12   34 45   55 0 ";
+        int counter = 0;
+        String[] arrayString = str.trim().split(" ");
         buffer = ByteBuffer.allocate(arrayString.length);
 
         for (String number : arrayString) {
-            buffer.put(Byte.parseByte(number));
+            if (!number.equals("")) {
+                buffer.put(Byte.parseByte(number));
+                counter++;
+            }
         }
-        System.out.println(Arrays.toString(buffer.array()));
+        System.out.println(Arrays.toString(Arrays.copyOf(buffer.array(), counter)));
     }
 }

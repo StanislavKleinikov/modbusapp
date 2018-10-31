@@ -16,9 +16,14 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+
+import android.view.Menu;
+import android.view.MenuItem;
+
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+
 import android.widget.Toast;
 
 import com.atomtex.modbusapp.R;
@@ -56,13 +61,15 @@ public class MainActivity extends AppCompatActivity {
     Button searchButton;
     @BindView(R.id.list_devices)
     ListView listViewDevices;
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
 
     private static final BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private SimpleAdapter mSimpleAdapter;
     private BroadcastReceiver mBroadcastReceiver;
     private BluetoothDevice mDevice;
     private SharedPreferences preferences;
-    private Toolbar toolbar;
+
 
     private final static ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
 
@@ -71,10 +78,8 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         ButterKnife.bind(this);
-
+        setSupportActionBar(mToolbar);
         preferences = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
         String macAddress = preferences.getString(KEY_ADDRESS, null);
         if (!ACTION_CHANGE_DEVICE.equals(getIntent().getAction())
@@ -82,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
                 && mBluetoothAdapter.getBondedDevices().contains(mBluetoothAdapter.getRemoteDevice(macAddress))) {
             connect(mBluetoothAdapter.getRemoteDevice(macAddress));
         }
-
         listViewDevices.setOnItemClickListener((parent, view, position, id) -> {
             Map map = (Map) mSimpleAdapter.getItem(position);
             String address = (String) map.get(KEY_ADDRESS);
@@ -118,9 +122,26 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(mBroadcastReceiver, filter);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void switchState() {
         if (mBluetoothAdapter.isEnabled()) {
             mBluetoothAdapter.disable();
+            arrayList.clear();
+            mSimpleAdapter.notifyDataSetChanged();
             makeToast(getString(R.string.toast_turned_off));
         } else {
             Intent turnOn = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -139,7 +160,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (REQUEST_CODE_BLUETOOTH_ON == requestCode) {
-            makeToast(getString(R.string.toast_turned_on));
+            if (resultCode == RESULT_OK) {
+                makeToast(getString(R.string.toast_turned_on));
+            }
             return;
         }
         switch (resultCode) {

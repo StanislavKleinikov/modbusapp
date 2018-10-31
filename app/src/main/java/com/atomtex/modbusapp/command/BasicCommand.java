@@ -1,8 +1,14 @@
 package com.atomtex.modbusapp.command;
 
+import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 
+import com.atomtex.modbusapp.activity.MainActivity;
+import com.atomtex.modbusapp.activity.SettingsActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
@@ -14,6 +20,7 @@ import java.nio.ByteBuffer;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_EXCEPTION;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_REQUEST_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
+import static com.atomtex.modbusapp.activity.MainActivity.APP_PREFERENCES;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 
 /**
@@ -27,6 +34,11 @@ public class BasicCommand implements Command {
     private LocalService mService;
     private Bundle mBundle;
     private Intent mIntent;
+    private SharedPreferences preferences;
+
+    private BasicCommand() {
+
+    }
 
     private static class BasicCommandHolder {
         static final BasicCommand instance = new BasicCommand();
@@ -41,13 +53,15 @@ public class BasicCommand implements Command {
         mService = service;
         mBundle = new Bundle();
         mIntent = new Intent();
+        preferences = ((Context) mService).getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        boolean bigEndian = preferences.getBoolean(SettingsActivity.PREFERENCES_CRC_ORDER, true);
         ByteBuffer buffer;
         if (data != null) {
             buffer = ByteBuffer.allocate(2 + data.length).put(address).put(command).put(data);
         } else {
             buffer = ByteBuffer.allocate(2).put(address).put(command);
         }
-        byte[] messageBytes = CRC16.getMessageWithCRC16(buffer.array());
+        byte[] messageBytes = CRC16.getMessageWithCRC16(buffer.array(), bigEndian);
         mMessage = new ModbusMessage(messageBytes);
         mBundle.putString(KEY_REQUEST_TEXT, ByteUtil.getHexString(messageBytes));
         if (modbus.sendMessage(mMessage)) {

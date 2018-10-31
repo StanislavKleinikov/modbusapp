@@ -1,10 +1,14 @@
 package com.atomtex.modbusapp.command;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.atomtex.modbusapp.activity.MainActivity;
+import com.atomtex.modbusapp.activity.SettingsActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
@@ -16,6 +20,7 @@ import java.nio.ByteBuffer;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_EXCEPTION;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_REQUEST_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
+import static com.atomtex.modbusapp.activity.MainActivity.APP_PREFERENCES;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
@@ -30,6 +35,11 @@ public class SpecterCommand implements Command {
     private LocalService mService;
     private Bundle mBundle;
     private Intent mIntent;
+    private SharedPreferences preferences;
+
+    private SpecterCommand() {
+
+    }
 
     private static class SpecterCommandHolder {
         static final SpecterCommand instance = new SpecterCommand();
@@ -41,18 +51,19 @@ public class SpecterCommand implements Command {
 
     @Override
     public void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service) {
-        Log.i(MainActivity.TAG, "Execute");
         mService = service;
         mBundle = new Bundle();
         mIntent = new Intent();
         ByteBuffer buffer;
+        preferences = ((Context) mService).getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        boolean bigEndian = preferences.getBoolean(SettingsActivity.PREFERENCES_CRC_ORDER, true);
 
         if (data != null) {
             buffer = ByteBuffer.allocate(3 + data.length).put(address).put(command).put((byte) data.length).put(data);
         } else {
             buffer = ByteBuffer.allocate(2).put(address).put(command);
         }
-        byte[] messageBytes = CRC16.getMessageWithCRC16(buffer.array());
+        byte[] messageBytes = CRC16.getMessageWithCRC16(buffer.array(), bigEndian);
         mMessage = new ModbusMessage(messageBytes);
         mBundle.putString(KEY_REQUEST_TEXT, ByteUtil.getHexString(messageBytes));
         if (modbus.sendMessage(mMessage)) {

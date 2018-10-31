@@ -59,9 +59,11 @@ public class CRC16 {
         return realCRC == crcToCheck;
     }
 
-    public static byte[] getMessageWithCRC16(byte[] bytes) {
+    public static byte[] getMessageWithCRC16(byte[] bytes, boolean bigEndian) {
         short crc = (short) calcCRC(bytes);
-        crc = ByteSwapper.swap(crc);
+        if (bigEndian) {
+            crc = ByteSwapper.swap(crc);
+        }
         byte[] bytesCRC = BitConverter.getBytes(crc);
         ByteBuffer buffer = ByteBuffer.allocate(bytes.length + bytesCRC.length);
         buffer.put(bytes);

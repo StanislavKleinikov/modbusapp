@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,6 +49,8 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     TextView second_text;
     @BindView(R.id.third_text)
     TextView third_text;
+    @BindView(R.id.request_mode)
+    CheckBox requestMode;
     @BindView(R.id.request_text)
     TextView requestText;
     @BindView(R.id.response_text)
@@ -150,16 +154,20 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         sendButton.setOnClickListener(v -> {
             ByteBuffer buffer;
             String dataString;
+            int counter = 0;
             try {
                 dataString = third_field.getText().toString().trim();
                 String[] stringArray = dataString.split(" ");
                 buffer = ByteBuffer.allocate(stringArray.length);
 
                 for (String number : stringArray) {
-                    buffer.put((byte) Integer.parseInt(number, 16));
+                    if (!number.equals("")) {
+                        buffer.put((byte) Integer.parseInt(number, 16));
+                        counter++;
+                    }
                 }
 
-                mService.start(buffer.array()[0], mCommand, buffer.array());
+                mService.start(buffer.array()[0], mCommand, Arrays.copyOf(buffer.array(), counter));
             } catch (NumberFormatException e) {
                 e.printStackTrace();
                 Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
@@ -243,6 +251,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         sendButton.setOnClickListener(v -> {
             ByteBuffer buffer;
             String dataString;
+            int counter = 0;
             byte[] firstValueBytes, secondValueBytes;
             short firstValue, secondValue;
             try {
@@ -251,9 +260,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 secondValue = (short) Integer.parseInt(second_field.getText().toString().trim());
                 dataString = third_field.getText().toString().trim();
                 String[] stringArray = dataString.split(" ");
-                if (secondValue != dataString.length()) {
-                    throw new NumberFormatException();
-                }
+
                 firstValue = ByteSwapper.swap(firstValue);
                 secondValue = ByteSwapper.swap(secondValue);
                 firstValueBytes = BitConverter.getBytes(firstValue);
@@ -263,13 +270,20 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 buffer.put(firstValueBytes).put(secondValueBytes);
 
                 for (String number : stringArray) {
-                    short value = Short.parseShort(number);
-                    value = ByteSwapper.swap(value);
-                    byte[] xBytes = BitConverter.getBytes(value);
-                    buffer.put(xBytes);
+                    if (!number.equals("")) {
+                        short value = Short.parseShort(number);
+                        value = ByteSwapper.swap(value);
+                        byte[] xBytes = BitConverter.getBytes(value);
+                        buffer.put(xBytes);
+                        counter++;
+                    }
                 }
 
-                mService.start(address, mCommand, buffer.array());
+                if (secondValue != counter) {
+                    throw new NumberFormatException();
+                }
+
+                mService.start(address, mCommand, Arrays.copyOf(buffer.array(), counter + 4));
             } catch (NumberFormatException e) {
                 Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
             }

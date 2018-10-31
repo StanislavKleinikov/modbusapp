@@ -1,9 +1,13 @@
 package com.atomtex.modbusapp.command;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.atomtex.modbusapp.activity.SettingsActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.LocalService;
@@ -17,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_ERROR_NUMBER;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_MESSAGE_NUMBER;
+import static com.atomtex.modbusapp.activity.MainActivity.APP_PREFERENCES;
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_CONNECTION_ACTIVE;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
@@ -32,15 +37,20 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD;
 public class ReadStatusWordTestCommand implements Command {
 
     private static final int TIMEOUT = 100;
-    private Modbus modbus;
+    private Modbus mModbus;
     private ScheduledExecutorService executor;
-    private LocalService service;
-    private Bundle bundle;
-    private ModbusMessage message;
-    private Intent intent;
+    private LocalService mService;
+    private Bundle mBundle;
+    private ModbusMessage mMessage;
+    private Intent mIntent;
     private int messageNumber;
     private int errorNumber;
     private long time;
+    private SharedPreferences preferences;
+
+    private ReadStatusWordTestCommand() {
+
+    }
 
     private static class ReadStatusWordTestHolder {
         static final ReadStatusWordTestCommand instance = new ReadStatusWordTestCommand();
@@ -52,13 +62,16 @@ public class ReadStatusWordTestCommand implements Command {
 
     @Override
     public void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service) {
-        this.modbus = modbus;
-        this.service = service;
+        mModbus = modbus;
+        mService = service;
+        preferences = ((Context) mService).getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        boolean bigEndian = preferences.getBoolean(SettingsActivity.PREFERENCES_CRC_ORDER, true);
+
         ByteBuffer buffer = ByteBuffer.allocate(2).put(address).put(READ_STATUS_WORD);
-        byte[] messageBytes = CRC16.getMessageWithCRC16(buffer.array());
-        message = new ModbusMessage(messageBytes);
-        bundle = new Bundle();
-        intent = new Intent();
+        byte[] messageBytes = CRC16.getMessageWithCRC16(buffer.array(), bigEndian);
+        mMessage = new ModbusMessage(messageBytes);
+        mBundle = new Bundle();
+        mIntent = new Intent();
         start();
     }
 
@@ -83,21 +96,21 @@ public class ReadStatusWordTestCommand implements Command {
     }
 
     private Bundle getBundle() {
-        bundle.putInt(KEY_MESSAGE_NUMBER, messageNumber);
-        bundle.putInt(KEY_ERROR_NUMBER, errorNumber);
-        return bundle;
+        mBundle.putInt(KEY_MESSAGE_NUMBER, messageNumber);
+        mBundle.putInt(KEY_ERROR_NUMBER, errorNumber);
+        return mBundle;
     }
 
     private void sendMessage() {
-        Log.i(TAG, "Send data: " + (System.currentTimeMillis() - time) + Arrays.toString(message.getBuffer()));
-        if (modbus.sendMessage(message)) {
+        Log.i(TAG, "Send data: " + (System.currentTimeMillis() - time) + Arrays.toString(mMessage.getBuffer()));
+        if (mModbus.sendMessage(mMessage)) {
             receiveMessage();
             messageNumber++;
-            service.getBoundedActivity().updateUI(getBundle());
+            mService.getBoundedActivity().updateUI(getBundle());
         } else {
             Log.e(TAG, "An error occurred while sending data");
-            intent.setAction(ACTION_DISCONNECT);
-            service.sendBroadcast(intent);
+            mIntent.setAction(ACTION_DISCONNECT);
+            mService.sendBroadcast(mIntent);
             stop();
             restartConnection();
         }
@@ -105,15 +118,15 @@ public class ReadStatusWordTestCommand implements Command {
 
     private void receiveMessage() {
         Log.i(TAG, "Start listening " + (System.currentTimeMillis() - time));
-        ModbusMessage message = modbus.receiveMessage();
+        ModbusMessage message = mModbus.receiveMessage();
         if (message.getBuffer() == null) {
             Log.e(TAG, "Unable to read");
             errorNumber++;
-            service.getBoundedActivity().updateUI(getBundle());
+            mService.getBoundedActivity().updateUI(getBundle());
         } else if (!message.isIntegrity()) {
             Log.e(TAG, "Buffer" + Arrays.toString(message.getBuffer()));
             errorNumber++;
-            service.getBoundedActivity().updateUI(getBundle());
+            mService.getBoundedActivity().updateUI(getBundle());
         }
     }
 
@@ -127,23 +140,23 @@ public class ReadStatusWordTestCommand implements Command {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                modbus.disconnect();
-                intent.setAction(ACTION_RECONNECT);
-                service.sendBroadcast(intent);
-                isConnected = modbus.connect();
+                mModbus.disconnect();
+                mIntent.setAction(ACTION_RECONNECT);
+                mService.sendBroadcast(mIntent);
+                isConnected = mModbus.connect();
                 if (!isConnected) {
                     Log.w(TAG, "Unable to connect");
-                    intent.setAction(ACTION_UNABLE_CONNECT);
-                    service.sendBroadcast(intent);
+                    mIntent.setAction(ACTION_UNABLE_CONNECT);
+                    mService.sendBroadcast(mIntent);
                 }
             }
             isConnected = false;
             while (!isConnected) {
-                modbus.disconnect();
-                isConnected = modbus.connect();
+                mModbus.disconnect();
+                isConnected = mModbus.connect();
             }
-            intent.setAction(ACTION_CONNECTION_ACTIVE);
-            service.sendBroadcast(intent);
+            mIntent.setAction(ACTION_CONNECTION_ACTIVE);
+            mService.sendBroadcast(mIntent);
             start();
         }).start();
     }

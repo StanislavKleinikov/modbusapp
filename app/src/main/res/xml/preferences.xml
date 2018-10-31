@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:divider="@color/colorPrimaryDark">
+
+    <PreferenceCategory
+        android:key="@string/preferences_category_basic"
+        android:title="@string/title_preferences_basic">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/preferences_crc_order"
+            android:summaryOff="@string/title_little_endian"
+            android:summaryOn="@string/title_big_endian"
+            android:title="@string/title_crc_order" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

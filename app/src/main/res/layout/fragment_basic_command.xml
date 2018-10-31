@@ -99,11 +99,7 @@
         android:gravity="center_vertical|center_horizontal"
         android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:labelFor="@id/address"
-            android:text="@string/device_address" />
+
 
         <EditText
             android:id="@+id/address"
@@ -115,12 +111,24 @@
             android:text="@string/default_device_address"
             android:textSize="20sp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:labelFor="@id/address"
+            android:text="@string/device_address" />
+
+        <CheckBox
+            android:id="@+id/request_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:text="@string/mode_auto" />
+
         <Button
             android:id="@+id/send_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginStart="60dp"
             android:layout_marginTop="5dp"
             android:text="@string/send_button" />
 

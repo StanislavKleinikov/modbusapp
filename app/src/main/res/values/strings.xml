@@ -55,27 +55,15 @@
     <string name="toast_turned_off">Выключено</string>
     <string name="toast_invalid_data">Некоректные данные</string>
 
-    <dimen name="TextView">30sp</dimen>
-    <dimen name="Counter">20sp</dimen>
+    <string name="preferences_crc_order">crcOrder</string>
+    <string name="preferences_category_basic">basic</string>
 
-    <string-array name="command" >
-        <item>Выберите команду</item>
-        <item>Ручной ввод комманды</item>
-        <item>Считать состояние двоичных сигналов</item>
-        <item>Считать состояние регистров управления</item>
-        <item>Считать состояние регистров данных</item>
-        <item>Подать управляющий сигнал</item>
-        <item>Изменить состояние регистра управления</item>
-        <item>Считать слово состояния</item>
-        <item>Диагностика</item>
-        <item>Считать выборку накапливаемого спектра</item>
-        <item>Изменить состояние регистров управления</item>
-        <item>Считать идентификационный код устройства</item>
-        <item>Считать выборку калибровочных данных</item>
-        <item>Записать выборку калибровочных данных</item>
-        <item>Считать накопленный спектр</item>
-        <item>Считать накопленный спектр в сжатом виде с перезапуском набора</item>
-        <item>Считать накопленный спектр в сжатом виде</item>
-        <item>Тест комманда 7</item>
-    </string-array>
+    <string name="title_settings">Настройки</string>
+    <string name="title_preferences_basic">Основные настройки</string>
+    <string name="title_crc_order">Порядок СRC в сообщении</string>
+    <string name="title_big_endian">Первый байт старший</string>
+    <string name="title_little_endian">Первый байт младший</string>
+
+    <string name="list_empty">Список пуст</string>
+    <string name="mode_auto">Авто</string>
 </resources>

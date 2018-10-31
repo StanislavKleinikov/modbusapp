@@ -9,7 +9,7 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
  *
  * @author stanislav.kleinikov@gmail.com
  */
-public class CommandChooser {
+public final class CommandChooser {
 
     private static final SparseArray<Command> btdu3commands;
 

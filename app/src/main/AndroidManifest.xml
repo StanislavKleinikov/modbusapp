@@ -30,6 +30,7 @@
             android:windowSoftInputMode="stateHidden">
 
         </activity>
+        <activity android:name=".activity.SettingsActivity" />
 
         <service android:name="com.atomtex.modbusapp.service.DeviceService" />
     </application>
