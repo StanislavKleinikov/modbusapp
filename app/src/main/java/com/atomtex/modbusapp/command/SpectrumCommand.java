@@ -3,11 +3,10 @@ package com.atomtex.modbusapp.command;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.nfc.Tag;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.atomtex.modbusapp.activity.MainActivity;
 import com.atomtex.modbusapp.activity.SettingsActivity;
 import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
@@ -18,6 +17,7 @@ import com.atomtex.modbusapp.util.ByteUtil;
 import com.atomtex.modbusapp.util.CRC16;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -38,12 +38,12 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
  *
  * @author stanislav.kleinikov@gmail.com
  */
-public class SpecterCommand implements Command {
+public class SpectrumCommand implements Command {
 
     private static final int TIMEOUT = 1000;
+    private static final int SERVICE_DATA_LENGTH = 6;
     private Modbus mModbus;
     private ModbusMessage mRequest;
-    private ModbusMessage mResponse;
     private LocalService mService;
     private ScheduledExecutorService mExecutor;
     private Bundle mBundle;
@@ -51,15 +51,15 @@ public class SpecterCommand implements Command {
     private int mMode;
     private boolean isActive;
 
-    private SpecterCommand() {
+    private SpectrumCommand() {
 
     }
 
     private static class SpecterCommandHolder {
-        static final SpecterCommand instance = new SpecterCommand();
+        static final SpectrumCommand instance = new SpectrumCommand();
     }
 
-    static SpecterCommand getInstance() {
+    static SpectrumCommand getInstance() {
         return SpecterCommandHolder.instance;
     }
 
@@ -106,39 +106,42 @@ public class SpecterCommand implements Command {
 
     private void executeSingle() {
         if (mModbus.sendMessage(mRequest)) {
-            mResponse = mModbus.receiveMessage();
+            ModbusMessage mResponse = mModbus.receiveMessage();
+
+            if (mResponse.getBuffer().length == 0) {
+                mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
+            } else if (mResponse.isException()) {
+                mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
+            } else {
+                if (!mResponse.isIntegrity()) {
+                    mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match");
+                } else if (mResponse.getBuffer()[1] == WRITE_CALIBRATION_DATA_SAMPLE
+                        || mResponse.getBuffer()[1] == CHANGE_STATE_CONTROL_REGISTERS) {
+                    mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
+                } else {
+
+                    //TODO need to implements this path
+                    if (mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED
+                            || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT) {
+                        getDecompressedSpectrum(mResponse.getBuffer(), 4, 1024);
+                    } else {
+                        if (getSpectrum(mResponse.getBuffer())) {
+                            Log.i(TAG, "Time" + mModbus.getTimeAccumulatedSpectrum());
+                        }
+                    }
+
+                    mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
+
+                }
+            }
+            mService.getBoundedActivity().updateUI(mBundle);
         } else {
             mIntent.setAction(ACTION_DISCONNECT);
             mService.sendBroadcast(mIntent);
             stop();
             restartConnection();
         }
-        if (mResponse.getBuffer().length == 0) {
-            mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
-        } else if (mResponse.isException()) {
-            mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
-        } else {
-            if (!mResponse.isIntegrity()) {
-                mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match");
-            } else if (mResponse.getBuffer()[1] == WRITE_CALIBRATION_DATA_SAMPLE
-                    || mResponse.getBuffer()[1] == CHANGE_STATE_CONTROL_REGISTERS) {
-                mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
-            } else {
 
-                //TODO need to implements this path
-                if (mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTER_COMPRESSED
-                        || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT) {
-
-
-                }else{
-
-                }
-
-                mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
-
-            }
-        }
-        mService.getBoundedActivity().updateUI(mBundle);
     }
 
     private void executeAuto() {
@@ -182,9 +185,9 @@ public class SpecterCommand implements Command {
         }).start();
     }
 
-    private boolean getSpecter(byte[] bytes, int indexInBytes, int channel) {
-
-        float[] spectrum = new float[channel];
+    private int[] getDecompressedSpectrum(byte[] bytes, int indexInBytes, int channel) {
+        Log.i(TAG, "getSpecter");
+        int[] spectrum = new int[channel];
         long val = 0;
         byte[] vv;
         long lv;
@@ -216,15 +219,60 @@ public class SpecterCommand implements Command {
                     valI = val + bytes[indexInBytes];
                     indexInBytes += 1;
                 }
-                spectrum[i] = (float) valI;
+                spectrum[i] = (int) valI;
                 val = valI;
 
             }
-            mModbus.setSpecter(spectrum);
-            return true;
+
+            Log.i(TAG, Arrays.toString(spectrum) + "\n" + spectrum.length);
+            return spectrum;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * This method was designed for parsing response that contains spectrum data
+     *
+     * <p>
+     *
+     *
+     * </p>
+     *
+     * @param bytes is the incoming array that represents valid response through the Modbus protocol
+     * @return whether the spectrum data was parsed successfully
+     */
+    private boolean getSpectrum(byte[] bytes) {
+
+        int[] spectrum;
+        int timeAccumulatedSpectrum;
+        try {
+            int spectrumDataLength = BitConverter.toInt16(
+                    new byte[]{bytes[3], bytes[2]}, 0) - SERVICE_DATA_LENGTH;
+
+            timeAccumulatedSpectrum = BitConverter.toInt16(
+                    new byte[]{bytes[4 + spectrumDataLength + 1], bytes[4 + spectrumDataLength]}, 0);
+
+            spectrum = new int[spectrumDataLength / 3];
+
+            byte[] tempArray = new byte[4];
+
+            for (int i = 0; i < spectrum.length; i++) {
+                for (int j = 4; j < spectrumDataLength; j += 3) {
+                    tempArray[0] = bytes[j + 2];
+                    tempArray[1] = bytes[j + 1];
+                    tempArray[2] = bytes[j];
+                    tempArray[3] = 0;
+                    spectrum[i] = BitConverter.toInt32(tempArray, 0);
+                }
+            }
+            mModbus.setSpectrum(spectrum);
+            mModbus.setTimeAccumulatedSpectrum(timeAccumulatedSpectrum);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+        return true;
     }
 }

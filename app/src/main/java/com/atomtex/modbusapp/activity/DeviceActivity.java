@@ -23,7 +23,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,12 +37,12 @@ import butterknife.ButterKnife;
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.CHANGE_STATE_CONTROL_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.DIAGNOSTICS;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM_COMPRESSED;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_CALIBRATION_DATA_SAMPLE;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_DEVICE_ID;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_SPECTER_ACCUMULATED_SAMPLE;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_SPECTRUM_ACCUMULATED_SAMPLE;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_CONTROL_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATE_DATA_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_BINARY_SIGNAL;
@@ -185,7 +184,7 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
                         setFragment(FRAGMENT_BASIC_COMMAND, DIAGNOSTICS);
                         break;
                     case 9:
-                        setFragment(FRAGMENT_BASIC_COMMAND, READ_SPECTER_ACCUMULATED_SAMPLE);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_SPECTRUM_ACCUMULATED_SAMPLE);
                         break;
                     case 10:
                         setFragment(FRAGMENT_BASIC_COMMAND, CHANGE_STATE_CONTROL_REGISTERS);
@@ -200,13 +199,13 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
                         setFragment(FRAGMENT_BASIC_COMMAND, WRITE_CALIBRATION_DATA_SAMPLE);
                         break;
                     case 14:
-                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTRUM);
                         break;
                     case 15:
-                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT);
                         break;
                     case 16:
-                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTER_COMPRESSED);
+                        setFragment(FRAGMENT_BASIC_COMMAND, READ_ACCUMULATED_SPECTRUM_COMPRESSED);
                         break;
                     case 17:
                         setFragment(FRAGMENT_TEST, READ_STATUS_WORD_TEST);

@@ -26,7 +26,6 @@ import java.util.Date;
 
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_ACTIVATED;
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD_TEST;
 
 /**
  * This class is the Service for communication with A device through the Bluetooth.

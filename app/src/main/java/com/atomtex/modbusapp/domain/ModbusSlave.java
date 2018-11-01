@@ -38,7 +38,7 @@ public class ModbusSlave extends Modbus {
     @Override
     public boolean sendMessage(ModbusMessage message) {
         requestMessage = message;
-        return getTransport().sendMessage(requestMessage.getBuffer());
+        return getTransport().sendMessage(message.getBuffer());
     }
 
     @Override

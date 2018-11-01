@@ -15,9 +15,9 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import static com.atomtex.modbusapp.util.BT_DU3Constant.DIAGNOSTICS;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM_COMPRESSED;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_STATUS_WORD;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.SEND_CONTROL_SIGNAL;
 
@@ -76,9 +76,9 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
 
     @Override
     public boolean sendMessage(byte[] message) {
-        if (message[1] == READ_ACCUMULATED_SPECTER
-                || message[1] == READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT
-                || message[1] == READ_ACCUMULATED_SPECTER_COMPRESSED) {
+        if (message[1] == READ_ACCUMULATED_SPECTRUM
+                || message[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT
+                || message[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED) {
             responseTimeout = TIMEOUT_READ_SPECTER;
         } else {
             responseTimeout = TIMEOUT_DEFAULT;
@@ -120,9 +120,9 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
                             totalByte = (buffer[2] & 255) + MESSAGE_DEFAULT_LENGTH;
                         }
                     } else if (currentPosition == 4 &&
-                            (buffer[1] == READ_ACCUMULATED_SPECTER
-                                    || buffer[1] == READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT
-                                    || buffer[1] == READ_ACCUMULATED_SPECTER_COMPRESSED)) {
+                            (buffer[1] == READ_ACCUMULATED_SPECTRUM
+                                    || buffer[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT
+                                    || buffer[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED)) {
                         int lengthData = BitConverter.toInt16(new byte[]{buffer[3], buffer[2]}, 0);
                         totalByte = lengthData + MESSAGE_MID_LENGTH;
                     }

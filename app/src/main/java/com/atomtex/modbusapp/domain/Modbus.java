@@ -19,7 +19,9 @@ public abstract class Modbus {
      */
     private ModbusTransport transport;
 
-    private float[] specter;
+    private int[] spectrum;
+
+    private int timeAccumulatedSpectrum;
 
     Modbus(ModbusTransport transport) {
         this.transport = transport;
@@ -62,11 +64,19 @@ public abstract class Modbus {
         transport.close();
     }
 
-    public float[] getSpecter() {
-        return specter;
+    public int[] getSpectrum() {
+        return spectrum;
     }
 
-    public void setSpecter(float[] specter) {
-        this.specter = specter;
+    public void setSpectrum(int[] spectrum) {
+        this.spectrum = spectrum;
+    }
+
+    public int getTimeAccumulatedSpectrum() {
+        return timeAccumulatedSpectrum;
+    }
+
+    public void setTimeAccumulatedSpectrum(int timeAccumulatedSpectrum) {
+        this.timeAccumulatedSpectrum = timeAccumulatedSpectrum;
     }
 }

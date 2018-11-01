@@ -55,16 +55,13 @@ public class ExampleUnitTest {
     @Test
     public void bitConvertTest() {
 
-        byte x = 0x01;
-        byte y = 0x07;
+        byte x = 0x0c;
+        byte y = 0x06;
 
-        short value = (short) 57921;
+        int spectrumDataLength = BitConverter.toInt16(new byte[]{1,1,1,0,2,3,x,y,4,5}, 3);
 
-        value = ByteSwapper.swap(value);
-        byte[] result = BitConverter.getBytes(value);
 
-        System.out.println(CRC16.calcCRC(new byte[]{x, y}));
-        System.out.println(Arrays.toString(result));
+        System.out.println(spectrumDataLength);
     }
 
     @Test

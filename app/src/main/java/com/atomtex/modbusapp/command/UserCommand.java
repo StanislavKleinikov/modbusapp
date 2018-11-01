@@ -11,11 +11,9 @@ import com.atomtex.modbusapp.domain.Modbus;
 import com.atomtex.modbusapp.domain.ModbusMessage;
 import com.atomtex.modbusapp.service.DeviceService;
 import com.atomtex.modbusapp.service.LocalService;
-import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.ByteUtil;
 import com.atomtex.modbusapp.util.CRC16;
 
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +27,7 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_CONNECTION_ACTI
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_RECONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_UNABLE_CONNECT;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
 /**
  * The implementation of the {@link Command} interface.
@@ -39,7 +38,6 @@ public class UserCommand implements Command {
     private static final int TIMEOUT = 1000;
     private Modbus mModbus;
     private ModbusMessage mRequest;
-    private ModbusMessage mResponse;
     private LocalService mService;
     private ScheduledExecutorService mExecutor;
     private Bundle mBundle;
@@ -96,31 +94,32 @@ public class UserCommand implements Command {
 
     private void executeSingle() {
         if (mModbus.sendMessage(mRequest)) {
-            mResponse = mModbus.receiveMessage();
+            ModbusMessage mResponse = mModbus.receiveMessage();
+
+            if (mResponse.getBuffer().length == 0) {
+                mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
+            } else if (mResponse.isException()) {
+                mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
+            } else {
+                if (!mResponse.isIntegrity()) {
+                    mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
+                } else if (mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM
+                        || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED
+                        || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT
+                        || mResponse.getBuffer()[1] == READ_SPECTRUM_ACCUMULATED_SAMPLE) {
+                    mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
+                } else {
+                    mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
+                }
+            }
+
+            mService.getBoundedActivity().updateUI(mBundle);
         } else {
             mIntent.setAction(ACTION_DISCONNECT);
             mService.sendBroadcast(mIntent);
             stop();
             restartConnection();
         }
-        if (mResponse.getBuffer().length == 0) {
-            mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
-        } else if (mResponse.isException()) {
-            mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
-        } else {
-            if (!mResponse.isIntegrity()) {
-                mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
-            } else if (mResponse.getBuffer()[1] == BT_DU3Constant.READ_ACCUMULATED_SPECTER
-                    || mResponse.getBuffer()[1] == BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED
-                    || mResponse.getBuffer()[1] == BT_DU3Constant.READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT
-                    || mResponse.getBuffer()[1] == BT_DU3Constant.READ_SPECTER_ACCUMULATED_SAMPLE) {
-                mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
-            } else {
-                mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
-            }
-        }
-
-        mService.getBoundedActivity().updateUI(mBundle);
     }
 
     private void executeAuto() {

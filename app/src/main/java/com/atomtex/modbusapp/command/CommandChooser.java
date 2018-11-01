@@ -24,13 +24,13 @@ public final class CommandChooser {
         btdu3commands.put(CHANGE_STATE_CONTROL_REGISTER, BasicCommand.getInstance());
         btdu3commands.put(DIAGNOSTICS, BasicCommand.getInstance());
         btdu3commands.put(READ_DEVICE_ID, BasicCommand.getInstance());
-        btdu3commands.put(CHANGE_STATE_CONTROL_REGISTERS, SpecterCommand.getInstance());
-        btdu3commands.put(READ_CALIBRATION_DATA_SAMPLE, SpecterCommand.getInstance());
-        btdu3commands.put(WRITE_CALIBRATION_DATA_SAMPLE, SpecterCommand.getInstance());
-        btdu3commands.put(READ_SPECTER_ACCUMULATED_SAMPLE, SpecterCommand.getInstance());
-        btdu3commands.put(READ_ACCUMULATED_SPECTER, SpecterCommand.getInstance());
-        btdu3commands.put(READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT, SpecterCommand.getInstance());
-        btdu3commands.put(READ_ACCUMULATED_SPECTER_COMPRESSED, SpecterCommand.getInstance());
+        btdu3commands.put(CHANGE_STATE_CONTROL_REGISTERS, SpectrumCommand.getInstance());
+        btdu3commands.put(READ_CALIBRATION_DATA_SAMPLE, SpectrumCommand.getInstance());
+        btdu3commands.put(WRITE_CALIBRATION_DATA_SAMPLE, SpectrumCommand.getInstance());
+        btdu3commands.put(READ_SPECTRUM_ACCUMULATED_SAMPLE, SpectrumCommand.getInstance());
+        btdu3commands.put(READ_ACCUMULATED_SPECTRUM, SpectrumCommand.getInstance());
+        btdu3commands.put(READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT, SpectrumCommand.getInstance());
+        btdu3commands.put(READ_ACCUMULATED_SPECTRUM_COMPRESSED, SpectrumCommand.getInstance());
         btdu3commands.put(READ_STATUS_WORD_TEST, ReadStatusWordTestCommand.getInstance());
     }
 

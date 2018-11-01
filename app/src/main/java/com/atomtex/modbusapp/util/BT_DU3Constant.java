@@ -74,7 +74,7 @@ public class BT_DU3Constant {
     /**
      * To consider the accumulated sample spectrum
      */
-    public static final byte READ_SPECTER_ACCUMULATED_SAMPLE = 0x0B;
+    public static final byte READ_SPECTRUM_ACCUMULATED_SAMPLE = 0x0B;
 
     /**
      * Change the state of control registers
@@ -99,17 +99,17 @@ public class BT_DU3Constant {
     /**
      * Read the accumulated spectrum
      */
-    public static final byte READ_ACCUMULATED_SPECTER = 0x40;
+    public static final byte READ_ACCUMULATED_SPECTRUM = 0x40;
 
     /**
      * Read the accumulated spectrum in compressed form with the restart of set
      */
-    public static final byte READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT = 0x41;
+    public static final byte READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT = 0x41;
 
     /**
      * Read the accumulated spectrum in compressed form
      */
-    public static final byte READ_ACCUMULATED_SPECTER_COMPRESSED = 0x42;
+    public static final byte READ_ACCUMULATED_SPECTRUM_COMPRESSED = 0x42;
 
     /**
      * TODO: remove this constant after test

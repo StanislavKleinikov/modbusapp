@@ -15,7 +15,6 @@ import com.atomtex.modbusapp.util.ByteUtil;
 import com.atomtex.modbusapp.util.CRC16;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -40,7 +39,6 @@ public class BasicCommand implements Command {
     private static final int TIMEOUT = 1000;
     private Modbus mModbus;
     private ModbusMessage mRequest;
-    private ModbusMessage mResponse;
     private LocalService mService;
     private ScheduledExecutorService mExecutor;
     private Bundle mBundle;
@@ -103,25 +101,26 @@ public class BasicCommand implements Command {
     private void executeSingle() {
 
         if (mModbus.sendMessage(mRequest)) {
-            mResponse = mModbus.receiveMessage();
+            ModbusMessage mResponse = mModbus.receiveMessage();
+
+            if (mResponse.getBuffer().length == 0) {
+                mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
+            } else if (mResponse.isException()) {
+                mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
+            } else {
+                if (!mResponse.isIntegrity()) {
+                    mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
+                } else {
+                    mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
+                }
+            }
+            mService.getBoundedActivity().updateUI(mBundle);
         } else {
             mIntent.setAction(ACTION_DISCONNECT);
             mService.sendBroadcast(mIntent);
             stop();
             restartConnection();
         }
-        if (mResponse.getBuffer().length == 0) {
-            mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
-        } else if (mResponse.isException()) {
-            mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
-        } else {
-            if (!mResponse.isIntegrity()) {
-                mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
-            } else {
-                mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
-            }
-        }
-        mService.getBoundedActivity().updateUI(mBundle);
     }
 
     private void executeAuto() {

@@ -120,7 +120,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             case CHANGE_STATE_CONTROL_REGISTERS:
                 changeMultiplyState();
                 break;
-            case READ_SPECTER_ACCUMULATED_SAMPLE:
+            case READ_SPECTRUM_ACCUMULATED_SAMPLE:
                 readSample();
                 break;
             case READ_DEVICE_ID:
@@ -132,13 +132,13 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             case WRITE_CALIBRATION_DATA_SAMPLE:
                 changeMultiplyState();
                 break;
-            case READ_ACCUMULATED_SPECTER:
+            case READ_ACCUMULATED_SPECTRUM:
                 commandWithoutData();
                 break;
-            case READ_ACCUMULATED_SPECTER_COMPRESSED_REBOOT:
+            case READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT:
                 commandWithoutData();
                 break;
-            case READ_ACCUMULATED_SPECTER_COMPRESSED:
+            case READ_ACCUMULATED_SPECTRUM_COMPRESSED:
                 commandWithoutData();
                 break;
             default:
