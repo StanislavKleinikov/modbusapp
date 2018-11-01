@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.atomtex.modbusapp.R;
+import com.atomtex.modbusapp.service.DeviceService;
 import com.atomtex.modbusapp.service.LocalService;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
@@ -27,13 +28,18 @@ import java.util.Arrays;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
+import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_ACTIVATED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_CONNECTION_STATUS;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_EXCEPTION;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_COMMAND;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_REQUEST_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
+import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_TOGGLE_CLICKABLE;
+import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_ACTIVE;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_DISCONNECTED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_NONE;
+import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_RECONNECT;
+import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_UNABLE_CONNECT;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
 /**
@@ -41,6 +47,7 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
  */
 public class BasicCommandFragment extends Fragment implements ServiceFragment, Callback {
 
+    private static final String KEY_BUTTON_TEXT = "buttonText";
     @BindView(R.id.layout_data_container)
     LinearLayout layoutDataContainer;
     @BindView(R.id.first_text)
@@ -152,25 +159,31 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         third_field.setInputType(InputType.TYPE_CLASS_TEXT);
 
         sendButton.setOnClickListener(v -> {
-            ByteBuffer buffer;
-            String dataString;
-            int counter = 0;
-            try {
-                dataString = third_field.getText().toString().trim();
-                String[] stringArray = dataString.split(" ");
-                buffer = ByteBuffer.allocate(stringArray.length);
+            if (sendButton.isActivated()) {
+                mService.stop();
+                sendButton.setActivated(false);
+                sendButton.setText(R.string.send_button);
+            } else {
+                ByteBuffer buffer;
+                String dataString;
+                int counter = 0;
+                try {
+                    dataString = third_field.getText().toString().trim();
+                    String[] stringArray = dataString.split(" ");
+                    buffer = ByteBuffer.allocate(stringArray.length);
 
-                for (String number : stringArray) {
-                    if (!number.equals("")) {
-                        buffer.put((byte) Integer.parseInt(number, 16));
-                        counter++;
+                    for (String number : stringArray) {
+                        if (!number.equals("")) {
+                            buffer.put((byte) Integer.parseInt(number, 16));
+                            counter++;
+                        }
                     }
-                }
 
-                mService.start(buffer.array()[0], mCommand, Arrays.copyOf(buffer.array(), counter));
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+                    executeCommand(buffer.array()[0], mCommand, Arrays.copyOf(buffer.array(), counter));
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                    Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -182,11 +195,17 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         second_field.setVisibility(View.GONE);
 
         sendButton.setOnClickListener(v -> {
-            try {
-                byte address = Byte.parseByte(addressView.getText().toString().trim());
-                mService.start(address, mCommand, null);
-            } catch (NumberFormatException e) {
-                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+            if (sendButton.isActivated()) {
+                mService.stop();
+                sendButton.setActivated(false);
+                sendButton.setText(R.string.send_button);
+            } else {
+                try {
+                    byte address = Byte.parseByte(addressView.getText().toString().trim());
+                    executeCommand(address, mCommand, null);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -204,35 +223,41 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         second_field.setHint(R.string.hex_number);
 
         sendButton.setOnClickListener(v -> {
-            ByteBuffer buffer;
-            byte[] firstValueBytes, secondValueBytes;
-            String firstString, secondString;
-            short firstValue, secondValue;
-            try {
-                buffer = ByteBuffer.allocate(4);
-                byte address = Byte.parseByte(addressView.getText().toString());
-                firstString = first_field.getText().toString().trim();
-                secondString = second_field.getText().toString().trim();
+            if (sendButton.isActivated()) {
+                mService.stop();
+                sendButton.setActivated(false);
+                sendButton.setText(R.string.send_button);
+            } else {
+                ByteBuffer buffer;
+                byte[] firstValueBytes, secondValueBytes;
+                String firstString, secondString;
+                short firstValue, secondValue;
+                try {
+                    buffer = ByteBuffer.allocate(4);
+                    byte address = Byte.parseByte(addressView.getText().toString());
+                    firstString = first_field.getText().toString().trim();
+                    secondString = second_field.getText().toString().trim();
 
-                if (firstString.startsWith(getString(R.string.hex_prefix))) {
-                    firstString = firstString.substring(2, firstString.length());
+                    if (firstString.startsWith(getString(R.string.hex_prefix))) {
+                        firstString = firstString.substring(2, firstString.length());
+                    }
+                    if (secondString.startsWith(getString(R.string.hex_prefix))) {
+                        secondString = secondString.substring(2, secondString.length());
+                    }
+
+                    firstValue = (short) Integer.parseInt(firstString, 16);
+                    secondValue = (short) Integer.parseInt(secondString, 16);
+                    firstValue = ByteSwapper.swap(firstValue);
+                    secondValue = ByteSwapper.swap(secondValue);
+                    firstValueBytes = BitConverter.getBytes(firstValue);
+                    secondValueBytes = BitConverter.getBytes(secondValue);
+
+                    buffer.put(firstValueBytes).put(secondValueBytes);
+
+                    executeCommand(address, mCommand, buffer.array());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
                 }
-                if (secondString.startsWith(getString(R.string.hex_prefix))) {
-                    secondString = secondString.substring(2, secondString.length());
-                }
-
-                firstValue = (short) Integer.parseInt(firstString, 16);
-                secondValue = (short) Integer.parseInt(secondString, 16);
-                firstValue = ByteSwapper.swap(firstValue);
-                secondValue = ByteSwapper.swap(secondValue);
-                firstValueBytes = BitConverter.getBytes(firstValue);
-                secondValueBytes = BitConverter.getBytes(secondValue);
-
-                buffer.put(firstValueBytes).put(secondValueBytes);
-
-                mService.start(address, mCommand, buffer.array());
-            } catch (NumberFormatException e) {
-                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -249,43 +274,49 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         second_text.setText(getString(R.string.number_registers));
 
         sendButton.setOnClickListener(v -> {
-            ByteBuffer buffer;
-            String dataString;
-            int counter = 0;
-            byte[] firstValueBytes, secondValueBytes;
-            short firstValue, secondValue;
-            try {
-                byte address = Byte.parseByte(addressView.getText().toString().trim());
-                firstValue = (short) Integer.parseInt(first_field.getText().toString().trim());
-                secondValue = (short) Integer.parseInt(second_field.getText().toString().trim());
-                dataString = third_field.getText().toString().trim();
-                String[] stringArray = dataString.split(" ");
+            if (sendButton.isActivated()) {
+                mService.stop();
+                sendButton.setActivated(false);
+                sendButton.setText(R.string.send_button);
+            } else {
+                ByteBuffer buffer;
+                String dataString;
+                int counter = 0;
+                byte[] firstValueBytes, secondValueBytes;
+                short firstValue, secondValue;
+                try {
+                    byte address = Byte.parseByte(addressView.getText().toString().trim());
+                    firstValue = (short) Integer.parseInt(first_field.getText().toString().trim());
+                    secondValue = (short) Integer.parseInt(second_field.getText().toString().trim());
+                    dataString = third_field.getText().toString().trim();
+                    String[] stringArray = dataString.split(" ");
 
-                firstValue = ByteSwapper.swap(firstValue);
-                secondValue = ByteSwapper.swap(secondValue);
-                firstValueBytes = BitConverter.getBytes(firstValue);
-                secondValueBytes = BitConverter.getBytes(secondValue);
+                    firstValue = ByteSwapper.swap(firstValue);
+                    secondValue = ByteSwapper.swap(secondValue);
+                    firstValueBytes = BitConverter.getBytes(firstValue);
+                    secondValueBytes = BitConverter.getBytes(secondValue);
 
-                buffer = ByteBuffer.allocate(4 + stringArray.length * 2);
-                buffer.put(firstValueBytes).put(secondValueBytes);
+                    buffer = ByteBuffer.allocate(4 + stringArray.length * 2);
+                    buffer.put(firstValueBytes).put(secondValueBytes);
 
-                for (String number : stringArray) {
-                    if (!number.equals("")) {
-                        short value = Short.parseShort(number);
-                        value = ByteSwapper.swap(value);
-                        byte[] xBytes = BitConverter.getBytes(value);
-                        buffer.put(xBytes);
-                        counter++;
+                    for (String number : stringArray) {
+                        if (!number.equals("")) {
+                            short value = Short.parseShort(number);
+                            value = ByteSwapper.swap(value);
+                            byte[] xBytes = BitConverter.getBytes(value);
+                            buffer.put(xBytes);
+                            counter++;
+                        }
                     }
-                }
 
-                if (secondValue != counter) {
-                    throw new NumberFormatException();
-                }
+                    if (secondValue != counter) {
+                        throw new NumberFormatException();
+                    }
 
-                mService.start(address, mCommand, Arrays.copyOf(buffer.array(), counter + 4));
-            } catch (NumberFormatException e) {
-                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+                    executeCommand(address, mCommand, Arrays.copyOf(buffer.array(), counter + 4));
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -298,24 +329,40 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
 
     private void defaultCommand() {
         sendButton.setOnClickListener(v -> {
-            ByteBuffer buffer;
-            byte[] firstValueBytes, secondValueBytes;
-            short firstValue, secondValue;
-            try {
-                byte address = Byte.parseByte(addressView.getText().toString().trim());
-                buffer = ByteBuffer.allocate(4);
-                firstValue = (short) Integer.parseInt(first_field.getText().toString().trim());
-                secondValue = (short) Integer.parseInt(second_field.getText().toString().trim());
-                firstValue = ByteSwapper.swap(firstValue);
-                secondValue = ByteSwapper.swap(secondValue);
-                firstValueBytes = BitConverter.getBytes(firstValue);
-                secondValueBytes = BitConverter.getBytes(secondValue);
-                buffer.put(firstValueBytes).put(secondValueBytes);
-                mService.start(address, mCommand, buffer.array());
-            } catch (NumberFormatException e) {
-                Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+            if (sendButton.isActivated()) {
+                mService.stop();
+                sendButton.setActivated(false);
+                sendButton.setText(R.string.send_button);
+            } else {
+                ByteBuffer buffer;
+                byte[] firstValueBytes, secondValueBytes;
+                short firstValue, secondValue;
+                try {
+                    byte address = Byte.parseByte(addressView.getText().toString().trim());
+                    buffer = ByteBuffer.allocate(4);
+                    firstValue = (short) Integer.parseInt(first_field.getText().toString().trim());
+                    secondValue = (short) Integer.parseInt(second_field.getText().toString().trim());
+                    firstValue = ByteSwapper.swap(firstValue);
+                    secondValue = ByteSwapper.swap(secondValue);
+                    firstValueBytes = BitConverter.getBytes(firstValue);
+                    secondValueBytes = BitConverter.getBytes(secondValue);
+                    buffer.put(firstValueBytes).put(secondValueBytes);
+                    executeCommand(address, mCommand, buffer.array());
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getActivity(), R.string.toast_invalid_data, Toast.LENGTH_SHORT).show();
+                }
             }
         });
+    }
+
+    private void executeCommand(byte address, byte commandByte, byte[] commandData) {
+        if (requestMode.isChecked()) {
+            sendButton.setActivated(true);
+            sendButton.setText(R.string.toggle_on);
+            mService.start(address, commandByte, commandData, DeviceService.MODE_AUTO);
+        } else {
+            mService.start(address, commandByte, commandData, DeviceService.MODE_SINGLE_REQUEST);
+        }
     }
 
     @Override
@@ -324,6 +371,9 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         if (savedInstanceState != null) {
             requestText.setText(savedInstanceState.getString(KEY_REQUEST_TEXT));
             responseText.setText(savedInstanceState.getString(KEY_RESPONSE_TEXT));
+            sendButton.setActivated(savedInstanceState.getBoolean(KEY_ACTIVATED, false));
+            sendButton.setText(savedInstanceState.getString(KEY_BUTTON_TEXT));
+            sendButton.setClickable(savedInstanceState.getBoolean(KEY_TOGGLE_CLICKABLE, true));
         }
     }
 
@@ -332,6 +382,9 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         super.onSaveInstanceState(outState);
         outState.putString(KEY_REQUEST_TEXT, requestText.getText().toString());
         outState.putString(KEY_RESPONSE_TEXT, responseText.getText().toString());
+        outState.putBoolean(KEY_ACTIVATED, sendButton.isActivated());
+        outState.putString(KEY_BUTTON_TEXT, sendButton.getText().toString());
+        outState.putBoolean(KEY_TOGGLE_CLICKABLE, sendButton.isClickable());
     }
 
     @Override
@@ -346,8 +399,21 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
 
         if (status != STATUS_NONE) {
             switch (status) {
+                case STATUS_ACTIVE:
+                    requestText.setText(getString(R.string.status_connected));
+                    sendButton.setClickable(true);
+                    break;
                 case STATUS_DISCONNECTED:
-                    responseText.setText(getString(R.string.status_disconnect));
+                    requestText.setText(getString(R.string.status_disconnect));
+                    sendButton.setClickable(false);
+                    break;
+                case STATUS_RECONNECT:
+                    requestText.setText(R.string.status_reconnect);
+                    sendButton.setClickable(false);
+                    break;
+                case STATUS_UNABLE_CONNECT:
+                    requestText.setText(R.string.status_unable_connect);
+                    sendButton.setClickable(false);
                     break;
             }
         } else if (exception != 0) {
@@ -370,8 +436,9 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             }
         } else {
             responseText.setText(bundle.getString(KEY_RESPONSE_TEXT, null));
+            requestText.setText(bundle.getString(KEY_REQUEST_TEXT, null));
         }
-        requestText.setText(bundle.getString(KEY_REQUEST_TEXT, null));
+
     }
 }
 

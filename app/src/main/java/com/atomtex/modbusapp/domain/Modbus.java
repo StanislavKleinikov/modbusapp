@@ -19,6 +19,8 @@ public abstract class Modbus {
      */
     private ModbusTransport transport;
 
+    private float[] specter;
+
     Modbus(ModbusTransport transport) {
         this.transport = transport;
     }
@@ -60,7 +62,11 @@ public abstract class Modbus {
         transport.close();
     }
 
-    public boolean isConnected() {
-        return transport.isConnected();
+    public float[] getSpecter() {
+        return specter;
+    }
+
+    public void setSpecter(float[] specter) {
+        this.specter = specter;
     }
 }

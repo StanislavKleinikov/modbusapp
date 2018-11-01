@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.atomtex.modbusapp.activity.SettingsActivity;
@@ -46,7 +45,7 @@ public class ReadStatusWordTestCommand implements Command {
     private int messageNumber;
     private int errorNumber;
     private long time;
-    private SharedPreferences preferences;
+    private boolean isActive;
 
     private ReadStatusWordTestCommand() {
 
@@ -61,10 +60,11 @@ public class ReadStatusWordTestCommand implements Command {
     }
 
     @Override
-    public void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service) {
+    public void execute(Modbus modbus, byte address, byte command, byte[] data, LocalService service, int mode) {
+        isActive = true;
         mModbus = modbus;
         mService = service;
-        preferences = ((Context) mService).getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        SharedPreferences preferences = ((Context) mService).getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
         boolean bigEndian = preferences.getBoolean(SettingsActivity.PREFERENCES_CRC_ORDER, true);
 
         ByteBuffer buffer = ByteBuffer.allocate(2).put(address).put(READ_STATUS_WORD);
@@ -77,6 +77,7 @@ public class ReadStatusWordTestCommand implements Command {
 
     @Override
     public void clear() {
+        isActive = false;
         messageNumber = 0;
         errorNumber = 0;
     }
@@ -135,6 +136,9 @@ public class ReadStatusWordTestCommand implements Command {
         new Thread(() -> {
             boolean isConnected = false;
             while (!isConnected) {
+                if (!isActive){
+                    return;
+                }
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {

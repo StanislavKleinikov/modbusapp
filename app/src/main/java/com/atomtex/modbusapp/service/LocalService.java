@@ -13,11 +13,9 @@ public interface LocalService {
 
     void registerClient(Callback activity);
 
-    void start(byte address, byte commandByte, byte[] commandData);
+    void start(byte address, byte commandByte, byte[] commandData,int mode);
 
     void stop();
-
-    void clear();
 
     void onDestroy();
 

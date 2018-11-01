@@ -1,17 +1,16 @@
 package com.atomtex.modbusapp;
 
-import com.atomtex.modbusapp.util.BT_DU3Constant;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
-import com.atomtex.modbusapp.util.ByteUtil;
+
 import com.atomtex.modbusapp.util.CRC16;
 
 import org.junit.Test;
 
-import java.lang.reflect.Array;
-import java.nio.Buffer;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
 
 import static org.junit.Assert.*;
 
@@ -59,12 +58,12 @@ public class ExampleUnitTest {
         byte x = 0x01;
         byte y = 0x07;
 
-        short value = (short)57921;
+        short value = (short) 57921;
 
         value = ByteSwapper.swap(value);
         byte[] result = BitConverter.getBytes(value);
 
-        System.out.println(CRC16.calcCRC(new byte[]{x,y}));
+        System.out.println(CRC16.calcCRC(new byte[]{x, y}));
         System.out.println(Arrays.toString(result));
     }
 
@@ -84,4 +83,5 @@ public class ExampleUnitTest {
         }
         System.out.println(Arrays.toString(Arrays.copyOf(buffer.array(), counter)));
     }
+
 }

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.atomtex.modbusapp.R;
+import com.atomtex.modbusapp.service.DeviceService;
 import com.atomtex.modbusapp.service.LocalService;
 import com.atomtex.modbusapp.util.BT_DU3Constant;
 
@@ -59,7 +60,7 @@ public class ReadStatusWordTestFragment extends Fragment implements ServiceFragm
 
         toggleButton.setOnClickListener((v) -> {
             if (toggleButton.isChecked()) {
-                mService.start(BT_DU3Constant.ADDRESS, BT_DU3Constant.READ_STATUS_WORD_TEST, null);
+                mService.start(BT_DU3Constant.ADDRESS, BT_DU3Constant.READ_STATUS_WORD_TEST, null, DeviceService.MODE_AUTO);
             } else {
                 mService.stop();
             }

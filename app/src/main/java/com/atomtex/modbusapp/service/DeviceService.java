@@ -45,6 +45,10 @@ public class DeviceService extends Service implements LocalService {
     public static final String ACTION_DISCONNECT = "actionDisconnect";
     public static final String ACTION_CANCEL = "actionCancel";
 
+    public static final int MODE_SINGLE_REQUEST = 1;
+    public static final int MODE_AUTO = 2;
+
+
     private Callback mActivity;
     private BluetoothDevice mDevice;
     private Intent mIntent;
@@ -103,12 +107,12 @@ public class DeviceService extends Service implements LocalService {
     }
 
     @SuppressWarnings("deprecation")
-    public void start(byte address, byte commandByte, byte[] commandData) {
+    public void start(byte address, byte commandByte, byte[] commandData, int mode) {
         Log.e(TAG, "Start");
 
         command = modbus.getCommand(commandByte);
 
-        if (commandByte == READ_STATUS_WORD_TEST) {
+        if (mode == MODE_AUTO) {
             Intent intent = new Intent(getApplicationContext(), DeviceActivity.class);
             intent.putExtra(KEY_ACTIVATED, true);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
@@ -139,9 +143,9 @@ public class DeviceService extends Service implements LocalService {
             startForeground(1, notification);
         }
         if (command != null) {
-            command.execute(modbus, address, commandByte, commandData, this);
-        }else{
-            Log.e(TAG,"The command is not found");
+            command.execute(modbus, address, commandByte, commandData, this, mode);
+        } else {
+            Log.e(TAG, "The command is not found");
         }
     }
 
@@ -150,12 +154,6 @@ public class DeviceService extends Service implements LocalService {
         stopForeground(true);
         if (command != null) {
             command.stop();
-        }
-    }
-
-    public void clear() {
-        if (command != null) {
-            command.clear();
         }
     }
 

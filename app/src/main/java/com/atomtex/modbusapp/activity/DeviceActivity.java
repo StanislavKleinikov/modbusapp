@@ -345,7 +345,7 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
             String action = intent.getAction();
             if (DeviceService.ACTION_CONNECTION_ACTIVE.equals(action)) {
                 makeToast(getString(R.string.toast_connection_active));
-                if (mDialog.isShowing()) {
+                if (mDialog != null && mDialog.isShowing()) {
                     mDialog.cancel();
                     mDialogIsShowing = false;
                 }
