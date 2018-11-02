@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".activity.BasicCommandFragment">
 
     <LinearLayout
@@ -136,6 +137,14 @@
             android:scrollbars="vertical"
             android:textSize="@dimen/TextView"
             tools:text="@string/response" />
+
+        <com.jjoe64.graphview.GraphView
+            android:id="@+id/graph"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:visibility="gone"
+            app:seriesColor="#000000"
+            app:seriesType="line" />
 
     </LinearLayout>
 </ScrollView>

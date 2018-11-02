@@ -36,7 +36,12 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_UNABLE_CONNECT;
  */
 public class BasicCommand implements Command {
 
+    /**
+     * Contains the interval between requests during for auto mode sending requests
+     * {@link #executeAuto()}
+     */
     private static final int TIMEOUT = 1000;
+
     private Modbus mModbus;
     private ModbusMessage mRequest;
     private LocalService mService;
@@ -121,11 +126,19 @@ public class BasicCommand implements Command {
         }
     }
 
+    /**
+     * Starts auto sending requests if this mode is selected
+     */
     private void executeAuto() {
         mExecutor = Executors.newScheduledThreadPool(1);
         mExecutor.scheduleAtFixedRate(this::executeSingle, 0, TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
+
+    /**
+     * Allows to restart connection if it lost and sends the broadcasts containing information
+     * about state executing the process.
+     */
     private void restartConnection() {
         Log.e(TAG, "Restart connection " + Thread.currentThread().getId());
         new Thread(() -> {

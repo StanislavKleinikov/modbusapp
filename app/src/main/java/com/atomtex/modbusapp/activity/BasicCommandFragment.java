@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +18,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.atomtex.modbusapp.R;
+import com.atomtex.modbusapp.domain.Modbus;
+import com.atomtex.modbusapp.domain.ModbusSlave;
 import com.atomtex.modbusapp.service.DeviceService;
 import com.atomtex.modbusapp.service.LocalService;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -29,16 +35,17 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_ACTIVATED;
-import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_CONNECTION_STATUS;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_EXCEPTION;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_COMMAND;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_REQUEST_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
+import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_STATUS;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_TOGGLE_CLICKABLE;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_ACTIVE;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_DISCONNECTED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_NONE;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_RECONNECT;
+import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_SPECTRUM_RECEIVED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_UNABLE_CONNECT;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
@@ -72,9 +79,12 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     Button sendButton;
     @BindView(R.id.address)
     EditText addressView;
+    @BindView(R.id.graph)
+    GraphView graph;
 
     private LocalService mService;
     private byte mCommand;
+    private Modbus mModbus;
 
     public static BasicCommandFragment newInstance(byte command) {
         BasicCommandFragment fragment = new BasicCommandFragment();
@@ -100,7 +110,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         ButterKnife.bind(this, view);
 
         responseText.setMovementMethod(new ScrollingMovementMethod());
-
+        mModbus = ModbusSlave.getInstance();
         switch (mCommand) {
             case USER_COMMAND:
                 userCommand();
@@ -133,12 +143,15 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 changeMultiplyState();
                 break;
             case READ_ACCUMULATED_SPECTRUM:
+                graph.setVisibility(View.VISIBLE);
                 commandWithoutData();
                 break;
             case READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT:
+                graph.setVisibility(View.VISIBLE);
                 commandWithoutData();
                 break;
             case READ_ACCUMULATED_SPECTRUM_COMPRESSED:
+                graph.setVisibility(View.VISIBLE);
                 commandWithoutData();
                 break;
             default:
@@ -394,7 +407,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
 
     @Override
     public void updateUI(Bundle bundle) {
-        int status = bundle.getInt(KEY_CONNECTION_STATUS, STATUS_NONE);
+        int status = bundle.getInt(KEY_STATUS, STATUS_NONE);
         byte exception = bundle.getByte(KEY_EXCEPTION);
 
         if (status != STATUS_NONE) {
@@ -414,6 +427,9 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 case STATUS_UNABLE_CONNECT:
                     requestText.setText(R.string.status_unable_connect);
                     sendButton.setClickable(false);
+                    break;
+                case STATUS_SPECTRUM_RECEIVED:
+                    updateGraph();
                     break;
             }
         } else if (exception != 0) {
@@ -438,7 +454,18 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
             responseText.setText(bundle.getString(KEY_RESPONSE_TEXT, null));
             requestText.setText(bundle.getString(KEY_REQUEST_TEXT, null));
         }
+    }
 
+    private void updateGraph() {
+        long time = System.currentTimeMillis();
+        int[] spectrum = mModbus.getSpectrum();
+        DataPoint[] points = new DataPoint[spectrum.length];
+        for (int i = 0; i < spectrum.length; i++) {
+            points[i] = new DataPoint(i, spectrum[i]);
+        }
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(points);
+        graph.addSeries(series);
+        Log.i(MainActivity.TAG, "Time " + (System.currentTimeMillis() - time));
     }
 }
 

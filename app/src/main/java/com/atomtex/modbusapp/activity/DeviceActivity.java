@@ -35,6 +35,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.atomtex.modbusapp.activity.MainActivity.TAG;
+import static com.atomtex.modbusapp.service.DeviceService.ACTION_CANCEL;
+import static com.atomtex.modbusapp.service.DeviceService.ACTION_RECONNECT;
+import static com.atomtex.modbusapp.service.DeviceService.ACTION_SPECTRUM_RECEIVED;
+import static com.atomtex.modbusapp.service.DeviceService.ACTION_UNABLE_CONNECT;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.CHANGE_STATE_CONTROL_REGISTERS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.DIAGNOSTICS;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM;
@@ -68,13 +72,14 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
     public static final String KEY_TOGGLE_CLICKABLE = "clickable";
     public static final String KEY_EXCEPTION = "exception";
     public static final String KEY_COMMAND = "command";
-    public static final String KEY_CONNECTION_STATUS = "connectionStatus";
+    public static final String KEY_STATUS = "status";
     public static final String KEY_DIALOG_IS_SHOWING = "dialogIsShowing";
     public static final int STATUS_NONE = 0;
     public static final int STATUS_ACTIVE = 1;
     public static final int STATUS_DISCONNECTED = 2;
     public static final int STATUS_RECONNECT = 3;
     public static final int STATUS_UNABLE_CONNECT = 4;
+    public static final int STATUS_SPECTRUM_RECEIVED = 5;
 
     public static final String FRAGMENT_BASIC_COMMAND = "basic_command_fragment";
     public static final String FRAGMENT_TEST = "test_fragment";
@@ -230,11 +235,12 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
         mDeviceName.setText(mDevice.getName());
         mConnection = this;
 
-        IntentFilter filter = new IntentFilter(DeviceService.ACTION_UNABLE_CONNECT);
+        IntentFilter filter = new IntentFilter(ACTION_UNABLE_CONNECT);
         filter.addAction(DeviceService.ACTION_CONNECTION_ACTIVE);
-        filter.addAction(DeviceService.ACTION_RECONNECT);
+        filter.addAction(ACTION_RECONNECT);
         filter.addAction(DeviceService.ACTION_DISCONNECT);
-        filter.addAction(DeviceService.ACTION_CANCEL);
+        filter.addAction(ACTION_CANCEL);
+        filter.addAction(ACTION_SPECTRUM_RECEIVED);
         mReceiver = new DeviceActivity.ConnectionBroadCastReceiver();
 
         registerReceiver(mReceiver, filter);
@@ -320,7 +326,6 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
         if (mFragment != null) {
             ((ServiceFragment) mFragment).boundService(mService);
         }
-        Log.i(TAG, "Service connected ");
     }
 
     @Override
@@ -349,29 +354,34 @@ public class DeviceActivity extends AppCompatActivity implements ServiceConnecti
                     mDialogIsShowing = false;
                 }
                 Bundle bundle = new Bundle();
-                bundle.putInt(KEY_CONNECTION_STATUS, STATUS_ACTIVE);
+                bundle.putInt(KEY_STATUS, STATUS_ACTIVE);
                 updateUI(bundle);
                 Log.i(TAG, "connected ");
-            } else if (DeviceService.ACTION_UNABLE_CONNECT.equals(action)) {
+            } else if (ACTION_UNABLE_CONNECT.equals(action)) {
                 makeToast(getString(R.string.toast_connection_failed));
                 Bundle bundle = new Bundle();
-                bundle.putInt(KEY_CONNECTION_STATUS, STATUS_UNABLE_CONNECT);
+                bundle.putInt(KEY_STATUS, STATUS_UNABLE_CONNECT);
                 updateUI(bundle);
                 Log.i(TAG, "unable connect ");
-            } else if (DeviceService.ACTION_RECONNECT.equals(action)) {
+            } else if (ACTION_RECONNECT.equals(action)) {
                 makeToast(getString(R.string.toast_reconnection));
                 Bundle bundle = new Bundle();
-                bundle.putInt(KEY_CONNECTION_STATUS, STATUS_RECONNECT);
+                bundle.putInt(KEY_STATUS, STATUS_RECONNECT);
                 updateUI(bundle);
                 Log.i(TAG, "Service reconnect ");
             } else if (DeviceService.ACTION_DISCONNECT.equals(action)) {
                 makeToast(getString(R.string.toast_connection_failed));
                 Bundle bundle = new Bundle();
-                bundle.putInt(KEY_CONNECTION_STATUS, STATUS_DISCONNECTED);
+                bundle.putInt(KEY_STATUS, STATUS_DISCONNECTED);
                 updateUI(bundle);
                 Log.i(TAG, "Service disconnected ");
-            } else if (DeviceService.ACTION_CANCEL.equals(action)) {
+            } else if (ACTION_CANCEL.equals(action)) {
                 cancel(getString(R.string.status_unable_connect));
+            } else if (ACTION_SPECTRUM_RECEIVED.equals(action)) {
+                Log.i(TAG, "Spectrum has been received");
+                Bundle bundle = new Bundle();
+                bundle.putInt(KEY_STATUS, STATUS_SPECTRUM_RECEIVED);
+                updateUI(bundle);
             }
         }
     }

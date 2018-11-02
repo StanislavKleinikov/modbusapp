@@ -29,18 +29,37 @@ import static com.atomtex.modbusapp.activity.MainActivity.TAG;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_CONNECTION_ACTIVE;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_RECONNECT;
+import static com.atomtex.modbusapp.service.DeviceService.ACTION_SPECTRUM_RECEIVED;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_UNABLE_CONNECT;
 import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 
 /**
  * The implementation of the {@link Command} interface.
+ * Was designed foe work with command relates to spectrum. Also
+ * allows to execute a command to write calibration data sample or
+ * change of state control registers.
  *
  * @author stanislav.kleinikov@gmail.com
  */
 public class SpectrumCommand implements Command {
 
+    /**
+     * Contains the interval between requests during for auto mode sending requests
+     * {@link #executeAuto()}
+     */
     private static final int TIMEOUT = 1000;
+
+    /**
+     * This constant is the number of bytes of spectrum service information in requests
+     * Need to separate spectrum data from service data in {@link #getSpectrum(byte[])} or
+     * {@link #getDecompressedSpectrum(byte[])} methods
+     */
     private static final int SERVICE_DATA_LENGTH = 6;
+
+    /**
+     * This constant is a temporal buffer for specter data during the parsing operation
+     * in {@link #getSpectrum(byte[])} or {{@link #getDecompressedSpectrum(byte[])} methods
+     */
     private static final int[] SPECTRUM = new int[3072];
 
     private Modbus mModbus;
@@ -137,9 +156,9 @@ public class SpectrumCommand implements Command {
                 }
 
                 if (result) {
-                    Log.i(TAG, "Time " + mModbus.getTimeAccumulatedSpectrum()
-                            + " Spectrum length " + mModbus.getSpectrum().length);
-                    mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
+                    mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getLength() + " bytes");
+                    mIntent.setAction(ACTION_SPECTRUM_RECEIVED);
+                    mService.sendBroadcast(mIntent);
                 } else {
                     mBundle.putString(KEY_RESPONSE_TEXT, "An error occurred while parsing response");
                 }
@@ -154,12 +173,18 @@ public class SpectrumCommand implements Command {
         }
     }
 
-
+    /**
+     * Starts auto sending requests if this mode is selected
+     */
     private void executeAuto() {
         mExecutor = Executors.newScheduledThreadPool(1);
         mExecutor.scheduleAtFixedRate(this::executeSingle, 0, TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Allows to restart connection if it lost and sends the broadcasts containing information
+     * about state executing the process.
+     */
     private void restartConnection() {
         Log.e(TAG, "Restart connection " + Thread.currentThread().getId());
         new Thread(() -> {
@@ -200,6 +225,7 @@ public class SpectrumCommand implements Command {
      * This method was designed for parsing response that contains spectrum and service data
      * in compressed form. Gets the source bytes array, then parses spectrum data and "live" spectrum
      * acquisition time and writes data into the {@link Modbus} class fields.
+     *
      * <p>
      * The method counts spectrum data length according the modbus response data where the 3 and 4
      * bytes are the length of spectrum data with service data.
@@ -213,7 +239,6 @@ public class SpectrumCommand implements Command {
      * of the current channel.
      * Of the six bytes of overhead, the first 2 bytes contain the "live" spectrum acquisition time,
      * and the remaining 4 bytes contain the high – energy pulse counter.\
-     * </p>
      *
      * @param bytes is the incoming array that represents valid response through the Modbus protocol
      *              that contains the spectrum and service data in compressed form
@@ -285,8 +310,7 @@ public class SpectrumCommand implements Command {
      *
      * <p>
      * The method counts spectrum data length according the modbus response data where the 3 and 4
-     * bytes are the length of spectrum data with service data if length consist of two bytes or
-     * 3 byte if one.
+     * bytes are the length of spectrum data with service data.
      * <p>
      * The entire spectrum is 3078 bytes in size. Of these, 3072 bytes - the actual spectrum
      * and 6 bytes-service data. The first 2 bytes of service data contain the "live" spectrum
@@ -296,21 +320,17 @@ public class SpectrumCommand implements Command {
      * @param bytes is the incoming array that represents valid response through the Modbus protocol
      *              that contains the spectrum and service data
      * @return whether the spectrum data was parsed successfully
+     * @see Modbus
      */
     private boolean getSpectrum(byte[] bytes) {
+        int startBytePosition = 4;
         int timeAccumulatedSpectrum;
         int spectrumDataLength;
-        int startBytePosition;
         int counter = 0;
         try {
-            if (bytes[1] == READ_SPECTRUM_ACCUMULATED_SAMPLE) {
-                spectrumDataLength = bytes[2];
-                startBytePosition = 3;
-            } else {
-                spectrumDataLength = BitConverter.toInt16(
-                        new byte[]{bytes[3], bytes[2]}, 0) - SERVICE_DATA_LENGTH;
-                startBytePosition = 4;
-            }
+
+            spectrumDataLength = BitConverter.toInt16(
+                    new byte[]{bytes[3], bytes[2]}, 0) - SERVICE_DATA_LENGTH;
 
             timeAccumulatedSpectrum = BitConverter.toInt16(
                     new byte[]{bytes[startBytePosition + spectrumDataLength + 1],

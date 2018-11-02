@@ -7,8 +7,6 @@ package com.atomtex.modbusapp.domain;
  */
 public class ModbusMessage {
 
-    public static final byte[] MESSAGE_07 = new byte[]{0x01, 0x07, (byte) 0xe2, 0x41};
-
     /**
      * The byte array to be send.
      */

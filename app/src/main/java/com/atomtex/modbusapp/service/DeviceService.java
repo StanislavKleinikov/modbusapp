@@ -43,6 +43,7 @@ public class DeviceService extends Service implements LocalService {
     public static final String ACTION_RECONNECT = "actionReconnect";
     public static final String ACTION_DISCONNECT = "actionDisconnect";
     public static final String ACTION_CANCEL = "actionCancel";
+    public static final String ACTION_SPECTRUM_RECEIVED = "spectrumReceived";
 
     public static final int MODE_SINGLE_REQUEST = 1;
     public static final int MODE_AUTO = 2;
@@ -65,7 +66,8 @@ public class DeviceService extends Service implements LocalService {
         mDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
         mIntent = new Intent();
         new Thread(() -> {
-            modbus = new ModbusSlave(ModbusTransportFactory.getTransport(mDevice));
+            modbus = ModbusSlave.getInstance();
+            modbus.setTransport(ModbusTransportFactory.getTransport(mDevice));
             if (!connect()) {
                 mIntent.setAction(ACTION_CANCEL);
                 sendBroadcast(mIntent);

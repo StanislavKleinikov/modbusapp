@@ -35,7 +35,13 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
  * @author stanislav.kleinikov@gmail.com
  */
 public class UserCommand implements Command {
+
+    /**
+     * Contains the interval between requests during for auto mode sending requests
+     * {@link #executeAuto()}
+     */
     private static final int TIMEOUT = 1000;
+
     private Modbus mModbus;
     private ModbusMessage mRequest;
     private LocalService mService;
@@ -104,9 +110,8 @@ public class UserCommand implements Command {
                 mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
             } else if (mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM
                     || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED
-                    || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT
-                    || mResponse.getBuffer()[1] == READ_SPECTRUM_ACCUMULATED_SAMPLE) {
-                mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
+                    || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT) {
+                mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getLength() + " bytes");
             } else {
                 mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
             }
@@ -120,11 +125,19 @@ public class UserCommand implements Command {
         }
     }
 
+    /**
+     * Starts auto sending requests if this mode is selected
+     */
     private void executeAuto() {
         mExecutor = Executors.newScheduledThreadPool(1);
         mExecutor.scheduleAtFixedRate(this::executeSingle, 0, TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
+
+    /**
+     * Allows to restart connection if it lost and sends the broadcasts containing information
+     * about state executing the process.
+     */
     private void restartConnection() {
         Log.e(TAG, "Restart connection " + Thread.currentThread().getId());
         new Thread(() -> {

@@ -19,8 +19,15 @@ public class ModbusSlave extends Modbus {
 
     private ModbusMessage requestMessage;
 
-    public ModbusSlave(ModbusTransport transport) {
-        super(transport);
+    private ModbusSlave() {
+    }
+
+    private static class ModbusSlaveHolder {
+        static final ModbusSlave instance = new ModbusSlave();
+    }
+
+    public static ModbusSlave getInstance() {
+        return ModbusSlaveHolder.instance;
     }
 
     public ModbusTransport getTransport() {

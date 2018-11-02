@@ -24,7 +24,7 @@ import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_RESPONSE_TEXT;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_MESSAGE_NUMBER;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_ERROR_NUMBER;
 import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_TOGGLE_CLICKABLE;
-import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_CONNECTION_STATUS;
+import static com.atomtex.modbusapp.activity.DeviceActivity.KEY_STATUS;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_ACTIVE;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_DISCONNECTED;
 import static com.atomtex.modbusapp.activity.DeviceActivity.STATUS_RECONNECT;
@@ -94,7 +94,7 @@ public class ReadStatusWordTestFragment extends Fragment implements ServiceFragm
 
     @Override
     public void updateUI(Bundle bundle) {
-        int status = bundle.getInt(KEY_CONNECTION_STATUS);
+        int status = bundle.getInt(KEY_STATUS);
         switch (status) {
             case STATUS_ACTIVE:
                 requestText.setText(getString(R.string.status_connected));

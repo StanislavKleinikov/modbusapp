@@ -20,8 +20,7 @@ public abstract class Modbus {
 
     private int timeAccumulatedSpectrum;
 
-    Modbus(ModbusTransport transport) {
-        this.transport = transport;
+    Modbus() {
     }
 
     public ModbusTransport getTransport() {
