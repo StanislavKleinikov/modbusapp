@@ -107,12 +107,10 @@ public class BasicCommand implements Command {
                 mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
             } else if (mResponse.isException()) {
                 mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
+            } else if (!mResponse.isIntegrity()) {
+                mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
             } else {
-                if (!mResponse.isIntegrity()) {
-                    mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
-                } else {
-                    mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
-                }
+                mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
             }
             mService.getBoundedActivity().updateUI(mBundle);
         } else {

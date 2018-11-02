@@ -100,20 +100,18 @@ public class UserCommand implements Command {
                 mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
             } else if (mResponse.isException()) {
                 mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
+            } else if (!mResponse.isIntegrity()) {
+                mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
+            } else if (mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM
+                    || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED
+                    || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT
+                    || mResponse.getBuffer()[1] == READ_SPECTRUM_ACCUMULATED_SAMPLE) {
+                mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
             } else {
-                if (!mResponse.isIntegrity()) {
-                    mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match\n" + ByteUtil.getHexString(mResponse.getBuffer()));
-                } else if (mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM
-                        || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED
-                        || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT
-                        || mResponse.getBuffer()[1] == READ_SPECTRUM_ACCUMULATED_SAMPLE) {
-                    mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
-                } else {
-                    mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
-                }
+                mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
             }
-
             mService.getBoundedActivity().updateUI(mBundle);
+
         } else {
             mIntent.setAction(ACTION_DISCONNECT);
             mService.sendBroadcast(mIntent);

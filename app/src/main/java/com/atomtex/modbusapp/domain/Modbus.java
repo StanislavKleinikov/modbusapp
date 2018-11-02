@@ -14,9 +14,6 @@ import com.atomtex.modbusapp.transport.ModbusTransport;
  */
 public abstract class Modbus {
 
-    /**
-     *
-     */
     private ModbusTransport transport;
 
     private int[] spectrum;

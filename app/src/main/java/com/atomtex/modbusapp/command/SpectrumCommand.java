@@ -3,7 +3,6 @@ package com.atomtex.modbusapp.command;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -42,6 +41,8 @@ public class SpectrumCommand implements Command {
 
     private static final int TIMEOUT = 1000;
     private static final int SERVICE_DATA_LENGTH = 6;
+    private static final int[] SPECTRUM = new int[3072];
+
     private Modbus mModbus;
     private ModbusMessage mRequest;
     private LocalService mService;
@@ -107,33 +108,43 @@ public class SpectrumCommand implements Command {
     private void executeSingle() {
         if (mModbus.sendMessage(mRequest)) {
             ModbusMessage mResponse = mModbus.receiveMessage();
+            byte command = mResponse.getBuffer()[1];
 
             if (mResponse.getBuffer().length == 0) {
                 mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
+
             } else if (mResponse.isException()) {
                 mBundle.putByte(KEY_EXCEPTION, mResponse.getBuffer()[2]);
+
+            } else if (!mResponse.isIntegrity()) {
+                mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match");
+
+            } else if (command == WRITE_CALIBRATION_DATA_SAMPLE
+                    || command == CHANGE_STATE_CONTROL_REGISTERS
+                    || command == READ_SPECTRUM_ACCUMULATED_SAMPLE) {
+                mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
+
             } else {
-                if (!mResponse.isIntegrity()) {
-                    mBundle.putString(KEY_RESPONSE_TEXT, "CRC is not match");
-                } else if (mResponse.getBuffer()[1] == WRITE_CALIBRATION_DATA_SAMPLE
-                        || mResponse.getBuffer()[1] == CHANGE_STATE_CONTROL_REGISTERS) {
-                    mBundle.putString(KEY_RESPONSE_TEXT, ByteUtil.getHexString(mResponse.getBuffer()));
+
+                boolean result;
+
+                if (command == READ_ACCUMULATED_SPECTRUM_COMPRESSED
+                        || command == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT) {
+                    result = getDecompressedSpectrum(mResponse.getBuffer());
+
                 } else {
+                    result = getSpectrum(mResponse.getBuffer());
+                }
 
-                    //TODO need to implements this path
-                    if (mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED
-                            || mResponse.getBuffer()[1] == READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT) {
-                        getDecompressedSpectrum(mResponse.getBuffer(), 4, 1024);
-                    } else {
-                        if (getSpectrum(mResponse.getBuffer())) {
-                            Log.i(TAG, "Time" + mModbus.getTimeAccumulatedSpectrum());
-                        }
-                    }
-
+                if (result) {
+                    Log.i(TAG, "Time " + mModbus.getTimeAccumulatedSpectrum()
+                            + " Spectrum length " + mModbus.getSpectrum().length);
                     mBundle.putString(KEY_RESPONSE_TEXT, "The data has received " + mResponse.getBuffer().length + " bytes");
-
+                } else {
+                    mBundle.putString(KEY_RESPONSE_TEXT, "An error occurred while parsing response");
                 }
             }
+
             mService.getBoundedActivity().updateUI(mBundle);
         } else {
             mIntent.setAction(ACTION_DISCONNECT);
@@ -141,8 +152,8 @@ public class SpectrumCommand implements Command {
             stop();
             restartConnection();
         }
-
     }
+
 
     private void executeAuto() {
         mExecutor = Executors.newScheduledThreadPool(1);
@@ -185,89 +196,137 @@ public class SpectrumCommand implements Command {
         }).start();
     }
 
-    private int[] getDecompressedSpectrum(byte[] bytes, int indexInBytes, int channel) {
-        Log.i(TAG, "getSpecter");
-        int[] spectrum = new int[channel];
-        long val = 0;
-        byte[] vv;
-        long lv;
-
-        try {
-            for (int i = 0; i < channel; i++) {
-                long valI;
-                if (bytes[indexInBytes] == -128) {
-                    vv = new byte[4];
-
-                    vv[0] = bytes[indexInBytes + 2];
-                    vv[1] = bytes[indexInBytes + 1];
-                    vv[2] = 0;
-                    vv[3] = 0;
-                    lv = BitConverter.toInt32(vv, 0);
-                    valI = val + lv;
-                    indexInBytes += 3;
-                } else if (bytes[indexInBytes] == 127) {
-                    vv = new byte[4];
-                    vv[0] = bytes[indexInBytes + 3];
-                    vv[1] = bytes[indexInBytes + 2];
-                    vv[2] = bytes[indexInBytes + 1];
-                    vv[3] = 0;
-
-                    lv = BitConverter.toInt32(vv, 0);
-                    valI = val + lv;
-                    indexInBytes += 4;
-                } else {
-                    valI = val + bytes[indexInBytes];
-                    indexInBytes += 1;
-                }
-                spectrum[i] = (int) valI;
-                val = valI;
-
-            }
-
-            Log.i(TAG, Arrays.toString(spectrum) + "\n" + spectrum.length);
-            return spectrum;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     /**
-     * This method was designed for parsing response that contains spectrum data
-     *
+     * This method was designed for parsing response that contains spectrum and service data
+     * in compressed form. Gets the source bytes array, then parses spectrum data and "live" spectrum
+     * acquisition time and writes data into the {@link Modbus} class fields.
      * <p>
-     *
-     *
+     * The method counts spectrum data length according the modbus response data where the 3 and 4
+     * bytes are the length of spectrum data with service data.
+     * <p>
+     * The spectrum is encoded as follows. Each channel is allocated from one to four bytes.
+     * If the value of the first byte is in the range from -127 to 126, then this byte is the only
+     * one and contains the difference between the values of the current and previous channels.
+     * If the value of the first byte is -128, the next two bytes contain the difference between
+     * the values of the current and previous channels.
+     * If the value of the first byte is 127, the next three bytes contain the absolute value
+     * of the current channel.
+     * Of the six bytes of overhead, the first 2 bytes contain the "live" spectrum acquisition time,
+     * and the remaining 4 bytes contain the high – energy pulse counter.\
      * </p>
      *
      * @param bytes is the incoming array that represents valid response through the Modbus protocol
+     *              that contains the spectrum and service data in compressed form
      * @return whether the spectrum data was parsed successfully
+     * @see Modbus
      */
-    private boolean getSpectrum(byte[] bytes) {
-
-        int[] spectrum;
+    private boolean getDecompressedSpectrum(byte[] bytes) {
+        int startBytePosition = 4;
         int timeAccumulatedSpectrum;
+        int previousValue = 0;
+        byte[] tempArray;
+        int difference;
+        int counter = 0;
+
         try {
+
             int spectrumDataLength = BitConverter.toInt16(
                     new byte[]{bytes[3], bytes[2]}, 0) - SERVICE_DATA_LENGTH;
 
             timeAccumulatedSpectrum = BitConverter.toInt16(
-                    new byte[]{bytes[4 + spectrumDataLength + 1], bytes[4 + spectrumDataLength]}, 0);
+                    new byte[]{bytes[startBytePosition + spectrumDataLength + 1],
+                            bytes[startBytePosition + spectrumDataLength]}, 0);
 
-            spectrum = new int[spectrumDataLength / 3];
+            for (int i = startBytePosition; i < spectrumDataLength + startBytePosition; ) {
+
+                int currentValue;
+
+                if (bytes[i] == -128) {
+                    tempArray = new byte[4];
+                    tempArray[0] = bytes[i + 2];
+                    tempArray[1] = bytes[i + 1];
+                    tempArray[2] = 0;
+                    tempArray[3] = 0;
+                    difference = BitConverter.toInt32(tempArray, 0);
+                    currentValue = previousValue + difference;
+                    i += 3;
+                } else if (bytes[i] == 127) {
+                    tempArray = new byte[4];
+                    tempArray[0] = bytes[i + 3];
+                    tempArray[1] = bytes[i + 2];
+                    tempArray[2] = bytes[i + 1];
+                    tempArray[3] = 0;
+
+                    difference = BitConverter.toInt32(tempArray, 0);
+                    currentValue = previousValue + difference;
+                    i += 4;
+                } else {
+                    currentValue = previousValue + bytes[i];
+                    i += 1;
+                }
+                SPECTRUM[counter] = currentValue;
+                previousValue = currentValue;
+                counter++;
+            }
+
+            mModbus.setSpectrum(Arrays.copyOf(SPECTRUM, counter));
+            mModbus.setTimeAccumulatedSpectrum(timeAccumulatedSpectrum);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * This method was designed for parsing response that contains spectrum and service data
+     * Gets the source bytes array, then parses spectrum data and "live" spectrum
+     * acquisition time and writes data into the {@link Modbus} class fields.
+     *
+     * <p>
+     * The method counts spectrum data length according the modbus response data where the 3 and 4
+     * bytes are the length of spectrum data with service data if length consist of two bytes or
+     * 3 byte if one.
+     * <p>
+     * The entire spectrum is 3078 bytes in size. Of these, 3072 bytes - the actual spectrum
+     * and 6 bytes-service data. The first 2 bytes of service data contain the "live" spectrum
+     * acquisition time, and the remaining 4 bytes contain the high – energy pulse counter.
+     * </p>
+     *
+     * @param bytes is the incoming array that represents valid response through the Modbus protocol
+     *              that contains the spectrum and service data
+     * @return whether the spectrum data was parsed successfully
+     */
+    private boolean getSpectrum(byte[] bytes) {
+        int timeAccumulatedSpectrum;
+        int spectrumDataLength;
+        int startBytePosition;
+        int counter = 0;
+        try {
+            if (bytes[1] == READ_SPECTRUM_ACCUMULATED_SAMPLE) {
+                spectrumDataLength = bytes[2];
+                startBytePosition = 3;
+            } else {
+                spectrumDataLength = BitConverter.toInt16(
+                        new byte[]{bytes[3], bytes[2]}, 0) - SERVICE_DATA_LENGTH;
+                startBytePosition = 4;
+            }
+
+            timeAccumulatedSpectrum = BitConverter.toInt16(
+                    new byte[]{bytes[startBytePosition + spectrumDataLength + 1],
+                            bytes[startBytePosition + spectrumDataLength]}, 0);
 
             byte[] tempArray = new byte[4];
 
-            for (int i = 0; i < spectrum.length; i++) {
-                for (int j = 4; j < spectrumDataLength; j += 3) {
-                    tempArray[0] = bytes[j + 2];
-                    tempArray[1] = bytes[j + 1];
-                    tempArray[2] = bytes[j];
-                    tempArray[3] = 0;
-                    spectrum[i] = BitConverter.toInt32(tempArray, 0);
-                }
+            for (int i = startBytePosition; i < spectrumDataLength + startBytePosition; i += 3) {
+                tempArray[0] = bytes[i + 2];
+                tempArray[1] = bytes[i + 1];
+                tempArray[2] = bytes[i];
+                tempArray[3] = 0;
+                SPECTRUM[counter] = BitConverter.toInt32(tempArray, 0);
+                counter++;
             }
-            mModbus.setSpectrum(spectrum);
+            mModbus.setSpectrum(Arrays.copyOf(SPECTRUM, counter));
             mModbus.setTimeAccumulatedSpectrum(timeAccumulatedSpectrum);
         } catch (Exception e) {
             e.printStackTrace();

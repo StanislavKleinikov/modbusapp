@@ -14,8 +14,6 @@ public interface ModbusTransport {
 
     boolean connect();
 
-    boolean isConnected();
-
     void close();
 
 }

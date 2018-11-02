@@ -114,7 +114,7 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
                             totalByte = MESSAGE_LONG_LENGTH;
                         } else if (buffer[1] == READ_STATUS_WORD) {
                             totalByte = MESSAGE_DEFAULT_LENGTH;
-                        }else if (buffer[1]==SEND_CONTROL_SIGNAL){
+                        } else if (buffer[1] == SEND_CONTROL_SIGNAL) {
                             totalByte = MESSAGE_LONG_LENGTH;
                         } else {
                             totalByte = (buffer[2] & 255) + MESSAGE_DEFAULT_LENGTH;
@@ -134,15 +134,6 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
         }
         return Arrays.copyOf(buffer, totalByte);
     }
-
-    @Override
-    public boolean isConnected() {
-        if (socket != null) {
-            return socket.isConnected();
-        } else
-            return false;
-    }
-
 
     public void close() {
         if (inputStream != null) {
