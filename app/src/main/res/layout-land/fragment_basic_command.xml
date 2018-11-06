@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".activity.BasicCommandFragment">
 
     <LinearLayout
@@ -108,8 +108,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:labelFor="@id/address"
                 android:layout_marginEnd="30dp"
+                android:labelFor="@id/address"
                 android:text="@string/device_address" />
 
             <CheckBox
@@ -138,13 +138,11 @@
             android:textSize="@dimen/TextView"
             tools:text="@string/response" />
 
-        <com.jjoe64.graphview.GraphView
-            android:id="@+id/graph"
+        <FrameLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
-            android:layout_height="350dp"
-            android:visibility="gone"
-            app:seriesColor="#000000"
-            app:seriesType="line" />
+            android:layout_height="300dp">
 
+        </FrameLayout>
     </LinearLayout>
 </ScrollView>

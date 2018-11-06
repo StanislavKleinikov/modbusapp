@@ -143,11 +143,12 @@
             android:scrollbars="vertical"
             android:textSize="@dimen/TextView" />
 
-        <com.jjoe64.graphview.GraphView
-            android:id="@+id/graph"
+        <FrameLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
-            android:layout_height="350dp"
-            android:visibility="gone" />
+            android:layout_height="300dp">
+
+        </FrameLayout>
 
     </LinearLayout>
 </ScrollView>

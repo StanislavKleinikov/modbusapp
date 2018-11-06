@@ -1,18 +1,19 @@
 package com.atomtex.modbusapp.activity;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.InputType;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,11 +25,16 @@ import com.atomtex.modbusapp.service.DeviceService;
 import com.atomtex.modbusapp.service.LocalService;
 import com.atomtex.modbusapp.util.BitConverter;
 import com.atomtex.modbusapp.util.ByteSwapper;
-import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import butterknife.BindView;
@@ -52,9 +58,11 @@ import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
 /**
  * @author stanislav.kleinikov@gmail.com
  */
-public class BasicCommandFragment extends Fragment implements ServiceFragment, Callback {
+public class BasicCommandFragment extends Fragment
+        implements ServiceFragment, Callback, OnChartValueSelectedListener {
 
     private static final String KEY_BUTTON_TEXT = "buttonText";
+    private static final String KEY_SPECTER_DATA_SET = "specterDataSet";
     @BindView(R.id.layout_data_container)
     LinearLayout layoutDataContainer;
     @BindView(R.id.first_text)
@@ -79,12 +87,15 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     Button sendButton;
     @BindView(R.id.address)
     EditText addressView;
-    @BindView(R.id.graph)
-    GraphView graph;
+    @BindView(R.id.container)
+    FrameLayout frameLayout;
 
     private LocalService mService;
     private byte mCommand;
     private Modbus mModbus;
+
+    private LineChart graph;
+    private ArrayList<Entry> entries;
 
     public static BasicCommandFragment newInstance(byte command) {
         BasicCommandFragment fragment = new BasicCommandFragment();
@@ -108,6 +119,15 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_basic_command, container, false);
         ButterKnife.bind(this, view);
+
+        if (savedInstanceState != null) {
+            requestText.setText(savedInstanceState.getString(KEY_REQUEST_TEXT));
+            responseText.setText(savedInstanceState.getString(KEY_RESPONSE_TEXT));
+            sendButton.setActivated(savedInstanceState.getBoolean(KEY_ACTIVATED, false));
+            sendButton.setText(savedInstanceState.getString(KEY_BUTTON_TEXT));
+            sendButton.setClickable(savedInstanceState.getBoolean(KEY_TOGGLE_CLICKABLE, true));
+            entries = savedInstanceState.getParcelableArrayList(KEY_SPECTER_DATA_SET);
+        }
 
         responseText.setMovementMethod(new ScrollingMovementMethod());
         mModbus = ModbusSlave.getInstance();
@@ -143,15 +163,16 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
                 changeMultiplyState();
                 break;
             case READ_ACCUMULATED_SPECTRUM:
-                graph.setVisibility(View.VISIBLE);
+                initGraph();
                 commandWithoutData();
                 break;
             case READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT:
-                graph.setVisibility(View.VISIBLE);
+                initGraph();
                 commandWithoutData();
                 break;
             case READ_ACCUMULATED_SPECTRUM_COMPRESSED:
-                graph.setVisibility(View.VISIBLE);
+                responseText.setVisibility(View.GONE);
+                initGraph();
                 commandWithoutData();
                 break;
             default:
@@ -379,18 +400,6 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        if (savedInstanceState != null) {
-            requestText.setText(savedInstanceState.getString(KEY_REQUEST_TEXT));
-            responseText.setText(savedInstanceState.getString(KEY_RESPONSE_TEXT));
-            sendButton.setActivated(savedInstanceState.getBoolean(KEY_ACTIVATED, false));
-            sendButton.setText(savedInstanceState.getString(KEY_BUTTON_TEXT));
-            sendButton.setClickable(savedInstanceState.getBoolean(KEY_TOGGLE_CLICKABLE, true));
-        }
-    }
-
-    @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(KEY_REQUEST_TEXT, requestText.getText().toString());
@@ -398,6 +407,7 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
         outState.putBoolean(KEY_ACTIVATED, sendButton.isActivated());
         outState.putString(KEY_BUTTON_TEXT, sendButton.getText().toString());
         outState.putBoolean(KEY_TOGGLE_CLICKABLE, sendButton.isClickable());
+        outState.putParcelableArrayList(KEY_SPECTER_DATA_SET, entries);
     }
 
     @Override
@@ -457,15 +467,55 @@ public class BasicCommandFragment extends Fragment implements ServiceFragment, C
     }
 
     private void updateGraph() {
-        long time = System.currentTimeMillis();
+        graph.clear();
         int[] spectrum = mModbus.getSpectrum();
-        DataPoint[] points = new DataPoint[spectrum.length];
+
+        entries = new ArrayList<>(spectrum.length);
+
         for (int i = 0; i < spectrum.length; i++) {
-            points[i] = new DataPoint(i, spectrum[i]);
+            entries.add(new Entry(i, spectrum[i]));
         }
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<>(points);
-        graph.addSeries(series);
-        Log.i(MainActivity.TAG, "Time " + (System.currentTimeMillis() - time));
+
+        LineDataSet dataSet = new LineDataSet(entries, "specter");
+        dataSet.setColor(Color.BLACK);
+        dataSet.setLineWidth(0);
+        dataSet.setDrawCircles(false);
+        dataSet.setHighLightColor(Color.RED);
+
+        LineData lineData = new LineData(dataSet);
+        graph.setData(lineData);
+        graph.invalidate();
+
+    }
+
+
+    private void initGraph() {
+        graph = new LineChart(getContext());
+        frameLayout.addView(graph);
+
+        if (entries != null) {
+            LineDataSet dataSet = new LineDataSet(entries, "specter");
+            dataSet.setColor(Color.BLACK);
+            dataSet.setLineWidth(0);
+            dataSet.setDrawCircles(false);
+            dataSet.setHighLightColor(Color.RED);
+            LineData lineData = new LineData(dataSet);
+            graph.setData(lineData);
+        }
+        Description description = new Description();
+        description.setText("Specter graph");
+        graph.setDescription(description);
+        graph.setOnChartValueSelectedListener(this);
+    }
+
+    @Override
+    public void onValueSelected(Entry e, Highlight h) {
+        Toast.makeText(getContext(), "X " + e.getX() + " Y " + e.getY(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onNothingSelected() {
+
     }
 }
 
