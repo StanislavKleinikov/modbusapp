@@ -132,7 +132,7 @@ public class ModbusRFCOMMTransport implements ModbusTransport, Closeable {
                 return null;
             }
         }
-        return Arrays.copyOf(buffer, totalByte);
+        return Arrays.copyOf(buffer, currentPosition);
     }
 
     public void close() {
