@@ -15,17 +15,17 @@ public class BT_DU3Constant {
     /**
      * The address of the first detection unit
      */
-    public static final byte ADDRESS_DU_1 = (byte) 0x81;
+    public static final byte ADDRESS_DU_1 = (byte) 0x11;
 
     /**
      * The address of the second detection unit
      */
-    public static final byte ADDRESS_DU_2 = (byte) 0x82;
+    public static final byte ADDRESS_DU_2 = (byte) 0x12;
 
     /**
      * The address of the third detection unit
      */
-    public static final byte ADDRESS_DU_3 = (byte) 0x83;
+    public static final byte ADDRESS_DU_3 = (byte) 0x13;
 
 
     //Basic commands
@@ -116,7 +116,6 @@ public class BT_DU3Constant {
      * Read status word test
      */
     public static final byte READ_STATUS_WORD_TEST = 0x20;
-
 
 
     //The Exception codes
