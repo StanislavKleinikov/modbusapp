@@ -272,7 +272,7 @@ public class SpectrumCommand implements Command {
                     tempArray[1] = bytes[i + 1];
                     tempArray[2] = 0;
                     tempArray[3] = 0;
-                    difference = BitConverter.toInt32(tempArray, 0);
+                    difference = BitConverter.toInt16(tempArray, 0);
                     currentValue = previousValue + difference;
                     i += 3;
                 } else if (bytes[i] == 127) {
@@ -282,8 +282,7 @@ public class SpectrumCommand implements Command {
                     tempArray[2] = bytes[i + 1];
                     tempArray[3] = 0;
 
-                    difference = BitConverter.toInt32(tempArray, 0);
-                    currentValue = previousValue + difference;
+                    currentValue = BitConverter.toInt32(tempArray, 0);
                     i += 4;
                 } else {
                     currentValue = previousValue + bytes[i];
