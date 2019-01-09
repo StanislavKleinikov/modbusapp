@@ -31,7 +31,11 @@ import static com.atomtex.modbusapp.service.DeviceService.ACTION_DISCONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_RECONNECT;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_SPECTRUM_RECEIVED;
 import static com.atomtex.modbusapp.service.DeviceService.ACTION_UNABLE_CONNECT;
-import static com.atomtex.modbusapp.util.BT_DU3Constant.*;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.CHANGE_STATE_CONTROL_REGISTERS;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM_COMPRESSED;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_ACCUMULATED_SPECTRUM_COMPRESSED_REBOOT;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.READ_SPECTRUM_ACCUMULATED_SAMPLE;
+import static com.atomtex.modbusapp.util.BT_DU3Constant.WRITE_CALIBRATION_DATA_SAMPLE;
 
 /**
  * The implementation of the {@link Command} interface.
@@ -127,8 +131,10 @@ public class SpectrumCommand implements Command {
     private void executeSingle() {
         if (mModbus.sendMessage(mRequest)) {
             ModbusMessage mResponse = mModbus.receiveMessage();
-            byte command = mResponse.getBuffer()[1];
-
+            byte command = 0;
+            if (mResponse.getLength() > 1) {
+                command = mResponse.getBuffer()[1];
+            }
             if (mResponse.getBuffer().length == 0) {
                 mBundle.putString(KEY_RESPONSE_TEXT, "No response or timeout failed");
 

@@ -482,6 +482,16 @@ public class BasicCommandFragment extends Fragment
         dataSet.setDrawCircles(false);
         dataSet.setHighLightColor(Color.RED);
 
+        dataSet.setDrawValues(false);
+
+        dataSet.enableDashedLine(0,100,0);
+        dataSet.setDrawCircles(true);
+        dataSet.setCircleColor(Color.BLACK);
+        dataSet.setCircleRadius(1);
+        dataSet.setCircleColorHole(Color.BLACK);
+
+
+
         LineData lineData = new LineData(dataSet);
         graph.setData(lineData);
         graph.invalidate();
