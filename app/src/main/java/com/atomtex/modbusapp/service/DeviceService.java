@@ -132,7 +132,7 @@ public class DeviceService extends Service implements LocalService {
                 builder = new NotificationCompat.Builder(getApplicationContext());
             }
 
-            builder.setSmallIcon(R.drawable.ic_launcher_background)
+            builder.setSmallIcon(R.mipmap.ic_launcher_foreground)
                     .setContentTitle(mDevice.getName())
                     .setContentText("Executing...")
                     .setOngoing(true)
